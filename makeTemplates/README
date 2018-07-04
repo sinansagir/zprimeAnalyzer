@@ -1,0 +1,15 @@
+The main code to make histograms is "doThetaTemplates.py":
+To be modified by user (listed in the order as they appear in the script):
+	- input directory (step1 or step2)
+	- list of samples to be run for signals, backgrounds, and data
+	- group the background processes into "ewk", "qcd", "top", "ttjets", 
+	  etc (no need to modify unless samples and thus their names change).
+	- systematics: they have to be defined in "analyze.py" and corresponding samples must exist.
+	  The systematics can be turned off if only simple plots wanted without total uncertainty bands
+	  or only considering the normalization uncertainties in the limit calculation!
+	- Give the list of cuts to be applied! New cuts can be included in "cutList" as long as
+	  they are also added in "analyze.py" to "cut" string and also add it to "cutString" variable in "doTemplates.py"
+	- modify the output directory names, etc
+	- modify the normalization uncertainties
+	- give the discriminants in "plotList" (given near the end). In the definition, give a name to distribution 
+	  as a key to the dictionary, name of the variable in input trees, x-axis label, and the desired binning
