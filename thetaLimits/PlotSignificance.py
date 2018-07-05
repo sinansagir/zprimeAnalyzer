@@ -31,6 +31,10 @@ exp68H=array('d',[0 for i in range(len(mass))])
 exp68L=array('d',[0 for i in range(len(mass))])
 exp95H=array('d',[0 for i in range(len(mass))])
 exp95L=array('d',[0 for i in range(len(mass))])
+sigma3=array('d',[0 for i in range(len(mass))])
+sigma3err=array('d',[0 for i in range(len(mass))])
+sigma5=array('d',[0 for i in range(len(mass))])
+sigma5err=array('d',[0 for i in range(len(mass))])
 
 theory_xsec_up = [math.sqrt(scale**2+pdf**2)*xsec/100 for xsec,scale,pdf in zip(theory_xsec,scale_up,pdf_up)]
 theory_xsec_dn = [math.sqrt(scale**2+pdf**2)*xsec/100 for xsec,scale,pdf in zip(theory_xsec,scale_dn,pdf_dn)]
@@ -96,15 +100,24 @@ def PlotLimits(limitDir,limitFile,chiral,tempKey):
     for i in range(len(mass)):        
         try:
         	if blind: fobs = open(limitDir+cutString+limitFile.replace(signal+'M3000',signal+'M'+mass_str[i]), 'rU')
-        	if not blind: fobs = open(limitDir+cutString+limitFile.replace(signal+'M3000',signal+'M'+mass_str[i]).replace('expected','observed'), 'rU')
+        	else: fobs = open(limitDir+cutString+limitFile.replace(signal+'M3000',signal+'M'+mass_str[i]).replace('expected','observed'), 'rU')
         	linesObs = fobs.readlines()
         	fobs.close()
         	
         	fexp = open(limitDir+cutString+limitFile.replace(signal+'M3000',signal+'M'+mass_str[i]), 'rU')
         	linesExp = fexp.readlines()
         	fexp.close()
+        	
+        	f3sigma = open(limitDir+cutString+limitFile.replace(signal+'M3000',signal+'M'+mass_str[i]).replace('expected','3sigmaSignif').replace('limits_',''), 'rU')
+        	lines3sigma = f3sigma.readlines()
+        	f3sigma.close()
+        	
+        	f5sigma = open(limitDir+cutString+limitFile.replace(signal+'M3000',signal+'M'+mass_str[i]).replace('expected','5sigmaSignif').replace('limits_',''), 'rU')
+        	lines5sigma = f5sigma.readlines()
+        	f5sigma.close()
+        	
         except: 
-        	obs[i],obserr[i],exp[i],experr[i],exp68L[i],exp68H[i],exp95L[i],exp95H[i] = 0,0,0,0,0,0,0,0
+        	obs[i],obserr[i],exp[i],experr[i],exp68L[i],exp68H[i],exp95L[i],exp95H[i],sigma3[i],sigma3err[i],sigma5[i],sigma5err[i] = 0,0,0,0,0,0,0,0,0,0,0,0
         	print "SKIPPING SIGNAL: "+mass_str[i]
         	continue
         
@@ -116,6 +129,10 @@ def PlotLimits(limitDir,limitFile,chiral,tempKey):
         exp68H[i] = float(linesExp[1].strip().split()[5])
         exp95L[i] = float(linesExp[1].strip().split()[2])
         exp95H[i] = float(linesExp[1].strip().split()[3])
+        sigma3[i] = float(lines3sigma[1].strip().split()[0])
+        sigma3err[i] = 0
+        sigma5[i] = float(lines5sigma[1].strip().split()[0])
+        sigma5err[i] = 0
     
         if i!=0:
         	if(exp[i]>theory_xsec[i] and exp[i-1]<theory_xsec[i-1]) or (exp[i]<theory_xsec[i] and exp[i-1]>theory_xsec[i-1]):
@@ -149,8 +166,12 @@ def PlotLimits(limitDir,limitFile,chiral,tempKey):
     obsv = rt.TVectorD(len(mass),obs)
     masserrv = rt.TVectorD(len(mass),masserr)
     obserrv = rt.TVectorD(len(mass),obserr)
-    experrv = rt.TVectorD(len(mass),experr)       
-
+    experrv = rt.TVectorD(len(mass),experr)
+    
+    sigma3v = rt.TVectorD(len(mass),sigma3)
+    sigma5v = rt.TVectorD(len(mass),sigma5)
+    sigma3errv = rt.TVectorD(len(mass),sigma3err)
+    sigma5errv = rt.TVectorD(len(mass),sigma5err)
 
     observed = rt.TGraphAsymmErrors(massv,obsv,masserrv,masserrv,obserrv,obserrv)
     observed.SetLineColor(rt.kBlack)
@@ -164,6 +185,15 @@ def PlotLimits(limitDir,limitFile,chiral,tempKey):
     expected68.SetFillColor(rt.kGreen+1)
     expected95 = rt.TGraphAsymmErrors(massv,expv,masserrv,masserrv,exp95Lv,exp95Hv)
     expected95.SetFillColor(rt.kOrange)
+    
+    sigma3gr = rt.TGraphAsymmErrors(massv,sigma3v,masserrv,masserrv,sigma3errv,sigma3errv)
+    sigma3gr.SetLineColor(rt.kBlue)
+    sigma3gr.SetLineWidth(2)
+    sigma3gr.SetMarkerStyle(20)
+    sigma5gr = rt.TGraphAsymmErrors(massv,sigma5v,masserrv,masserrv,sigma5errv,sigma5errv)
+    sigma5gr.SetLineColor(rt.kGreen)
+    sigma5gr.SetLineWidth(2)
+    sigma5gr.SetMarkerStyle(20)
 
     canvas = rt.TCanvas("c4","c4",50,50,W,H)
     canvas.SetFillColor(0)
@@ -181,16 +211,26 @@ def PlotLimits(limitDir,limitFile,chiral,tempKey):
     XaxisTitle = "g^{RS}_{KK} mass [TeV]"
     YaxisTitle = "#sigma(g^{RS}_{KK}) [pb]"
 
-    expected95.Draw("a3")
-    expected95.GetYaxis().SetRangeUser(.001+.00001,1.45)
-    expected95.GetXaxis().SetRangeUser(mass[0],mass[-1])
-    expected95.GetXaxis().SetTitle(XaxisTitle)
-    expected95.GetXaxis().SetTitleOffset(1)
-    expected95.GetYaxis().SetTitle(YaxisTitle)
-    expected95.GetYaxis().SetTitleOffset(1)
-		
-    expected68.Draw("3same")
-    expected.Draw("same")
+#     expected95.Draw("a3")
+#     expected95.GetYaxis().SetRangeUser(.001+.00001,1.45)
+#     expected95.GetXaxis().SetRangeUser(mass[0],mass[-1])
+#     expected95.GetXaxis().SetTitle(XaxisTitle)
+#     expected95.GetXaxis().SetTitleOffset(1)
+#     expected95.GetYaxis().SetTitle(YaxisTitle)
+#     expected95.GetYaxis().SetTitleOffset(1)
+# 		
+#     expected68.Draw("3same")
+#     expected.Draw("same")
+    expected.Draw("AL")
+    expected.GetYaxis().SetRangeUser(.001+.00001,1.45)
+    expected.GetXaxis().SetRangeUser(mass[0],mass[-1])
+    expected.GetXaxis().SetTitle(XaxisTitle)
+    expected.GetXaxis().SetTitleOffset(1)
+    expected.GetYaxis().SetTitle(YaxisTitle)
+    expected.GetYaxis().SetTitleOffset(1)
+    
+    sigma3gr.Draw("same")
+    sigma5gr.Draw("same")
 
     if not blind: observed.Draw("cpsame")
     theory_xsec_gr.SetLineColor(2)
@@ -211,6 +251,8 @@ def PlotLimits(limitDir,limitFile,chiral,tempKey):
     legend.AddEntry(expected, "Median expected", "l")
     legend.AddEntry(expected95, "95% expected", "f")
     legend.AddEntry(theory_xsec_gr, "Signal cross section", "lf")
+    legend.AddEntry(sigma3gr , '3#sigma', "l")
+    legend.AddEntry(sigma5gr , '5#sigma', "l")
 
     legend.SetShadowColor(0)
     legend.SetFillStyle(0)
@@ -229,7 +271,7 @@ def PlotLimits(limitDir,limitFile,chiral,tempKey):
     folder = '.'
     outDir=folder+'/'+limitDir.split('/')[-3]+'plots'
     if not os.path.exists(outDir): os.system('mkdir '+outDir)
-    plotName = 'LimitPlot_'+histPrefix+'_rebinned_stat'+str(binning).replace('.','p')+saveKey+'_'+tempKey
+    plotName = 'SignificancePlot_'+histPrefix+'_rebinned_stat'+str(binning).replace('.','p')+saveKey+'_'+tempKey
     if blind: plotName+='_blind'
     canvas.SaveAs(outDir+'/'+plotName+'.eps')
     canvas.SaveAs(outDir+'/'+plotName+'.pdf')
@@ -243,14 +285,13 @@ dirs = {
 		'RSGKK':'templates_2018_4_29_test',
 		}
 dirKeyList = ['RSGKK']
-binnings = ['0p25','0p5','0p75','1p0','1p1']
+binnings = ['0p5']#,'0p75','1p0','1p1']
 
 expLims = {}
 obsLims = {}
 for discriminant in iPlotList:
 	for dirKey in dirKeyList:
 		dir = dirs[dirKey]
-		#cutString=dir
 		expLims[dirKey+discriminant] = {}
 		obsLims[dirKey+discriminant] = {}
 		for binning in binnings:
@@ -263,13 +304,7 @@ for discriminant in iPlotList:
 				expTemp,obsTemp = PlotLimits(limitDir,limitFile,'',tempKey)
 				expLims[dirKey+discriminant][binning].append(expTemp)
 				obsLims[dirKey+discriminant][binning].append(obsTemp)
-# print "Configs :",tempKeys
-# for dir in dirs:
-# 	print dir
-# 	for binning in binnings:
-# 		print binning
-# 		print "Expected:",expLims[dir][binning]
-# 		print "Observed:",obsLims[dir][binning]
+
 for discriminant in iPlotList:
 	print discriminant
 	for dirKey in dirKeyList: print dirKey,

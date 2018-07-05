@@ -1,11 +1,11 @@
 import os,sys,fnmatch
 
-templateDir='/user_data/ssagir/CMSSW_7_4_7/src/RSGluonAnalyzer/makeTemplates/'
-templateDir+='templates_2018_4_29'
-thetaConfigTemp = os.getcwd()+'/theta_config_template.py'
+thisDir = os.getcwd()
+templateDir = thisDir+'/../makeTemplates/templates_2018_4_29'
+thetaConfigTemp = thisDir+'/theta_config_template.py'
 lumiInFile = '36p0fb'
 
-toFilter0+= []#['pileup','jec','jer','jms','jmr','tau21','taupt','topsf','toppt','muRFcorrdNew','pdfNew','trigeff','btag','mistag']#,'jsf'
+toFilter0 = []#['pileup','jec','jer','jms','jmr','tau21','taupt','topsf','toppt','muRFcorrdNew','pdfNew','trigeff','btag','mistag']#,'jsf'
 toFilter0 = ['__'+item+'__' for item in toFilter0]
 
 limitConfs = {#'<limit type>':[filter list]
@@ -14,7 +14,7 @@ limitConfs = {#'<limit type>':[filter list]
 # 			  'isM':['isE'], #only muon channel
 			  }
 
-limitType = ''
+limitType = '_test'
 outputDir = '/user_data/ssagir/Zprime_limits_2018/'+templateDir.split('/')[-1]+limitType+'/' #prevent writing these (they are large) to brux6 common area
 if not os.path.exists(outputDir): os.system('mkdir '+outputDir)
 print outputDir
@@ -56,7 +56,7 @@ def makeThetaConfig(rFile,outDir,toFilter):
 		fout.write('source /cvmfs/cms.cern.ch/cmsset_default.sh\n')
 		fout.write('cmsenv\n')
 		fout.write('cd '+outDir+'\n')
-		fout.write('/home/ssagir/CMSSW_7_3_0/src/theta/utils2/theta-auto.py ' + outDir+'/'+rFile.split('/')[-1].replace('.root','.py'))
+		fout.write('/home/ssagir/CMSSW_7_3_0/src/theta/utils/theta-auto.py ' + outDir+'/'+rFile.split('/')[-1].replace('.root','.py'))
 
 count=0
 for limitConf in limitConfs:
