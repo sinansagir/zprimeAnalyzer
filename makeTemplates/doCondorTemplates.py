@@ -16,46 +16,44 @@ if not categorize: pfix='kinematics_'+region
 pfix+='_'+date#+'_'+time
 
 iPlotList = [#distribution name as defined in "doHists.py"
-			'NPV',
-			'AK8NJets',
-			'AK8Jet1Eta',
-			'AK8Jet2Eta',
-			'AK8Jet1Phi',
-			'AK8Jet2Phi',
-			'AK8Jet1Pt',
-			'AK8Jet2Pt',
-			'AK8Jet1M',
-			'AK8Jet2M',
-			'AK8Jet1SDM',
-			'AK8Jet2SDM',
-			'AK8Jet1SDMcorr',
-			'AK8Jet2SDMcorr',
-			'AK8Jet1Tau32',
-			'AK8Jet2Tau32',
-			'AK8Jet1Tau21',
-			'AK8Jet2Tau21',
-			'AK8Jet1MaxSubbDisc',
-			'AK8Jet2MaxSubbDisc',
-			'AK8Jet1Sub1bDisc',
-			'AK8Jet1Sub2bDisc',
-			'AK8Jet2Sub1bDisc',
-			'AK8Jet2Sub2bDisc',
-			'AK8Jet1Mult',
-			'AK8Jet2Mult',
-			'AK8Jet1CHF',
-			'AK8Jet2CHF',
-			'DRJ1J2',
-			'DEtaJ1J2',
-			'DPhiJ1J2',
-			'DYJ1J2',
-			'RSGPt',
-			'RSGMass'
+			'lepPt',
+			'lepEta',
+			'lepPhi',
+			'lepRelIso',
+			'lepAbsIso',
+			'metPt',
+			'leadJetPt',
+			'subLeadJetPt',
+			'tlepLeadAK4Pt',
+			'NJetsSel',
+			'minDR_lepJet',
+			'ptRel_lepJet',
+			'deltaR_ljets0',
+			'deltaR_ljets1',
+			'WlepPt',
+			'WlepMass',
+			'thadPt',
+			'thadMass',
+			'thadChi2',
+			'tlepPt',
+			'tlepMass',
+			'tlepChi2',
+			'topAK8Pt',
+			'topAK8Mass',
+			'topAK8Tau32',
+			'topAK8SDMass',
+			'Ntoptagged',
+			'zpDeltaR',
+			'zpDeltaY',
+			'zpPt',
+			'zpMass',
+			'genzpMass'
 			]
 
-isEMlist = ['LT','GT']
+isEMlist = ['E','M']
 nttaglist = ['0p']
 nWtaglist = ['0p']
-nbtaglist = ['0p','0','1','2']
+nbtaglist = ['0p']#,'0','1','2']
 njetslist = ['0p']
 if not categorize: 	
 	nttaglist = ['0p']

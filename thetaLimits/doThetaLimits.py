@@ -1,21 +1,33 @@
 import os,sys,fnmatch
 
 thisDir = os.getcwd()
-templateDir = thisDir+'/../makeTemplates/templates_2018_4_29'
-thetaConfigTemp = thisDir+'/theta_config_template.py'
-lumiInFile = '36p0fb'
+templateDir = thisDir+'/../makeTemplates/templates_zpMass_2018_8_23'
+thetaConfigTemp = thisDir+'/theta_config_limits.py'
+doLimits = False #else, it will run 3 and 5 sigma reaches
+do2xSyst = True
+doStatOnly = False
+if not doLimits: thetaConfigTemp = thisDir+'/theta_config_discreach.py'
 
 toFilter0 = []#['pileup','jec','jer','jms','jmr','tau21','taupt','topsf','toppt','muRFcorrdNew','pdfNew','trigeff','btag','mistag']#,'jsf'
 toFilter0 = ['__'+item+'__' for item in toFilter0]
 
 limitConfs = {#'<limit type>':[filter list]
-			  'all':[],
+			  #'all':[],
 # 			  'isE':['isM'], #only electron channel
 # 			  'isM':['isE'], #only muon channel
+# 			  'btagcats':['M__','E__'],
+# 			  'nobtagcats':['_nB'],
+# 			  'ttagcats':['M__','E__'],
+# 			  'nottagcats':['_nT'],
+			  'btagcats':['M__','E__','E_nB','M_nB','nT0__','nT1__'],
+			  'nobtagcats':['M__','E__','_nB'],
 			  }
 
-limitType = '_test'
-outputDir = '/user_data/ssagir/Zprime_limits_2018/'+templateDir.split('/')[-1]+limitType+'/' #prevent writing these (they are large) to brux6 common area
+limitType = ''#'_36fbinv'
+if do2xSyst: limitType = '_2xSyst'
+if doStatOnly: limitType = '_statOnly'
+limordisc = {0:'_disc',1:'_lim'}
+outputDir = '/user_data/ssagir/Zprime_limits_2018/'+templateDir.split('/')[-1]+limitType+limordisc[doLimits]+'/' #prevent writing these (they are large) to brux6 common area
 if not os.path.exists(outputDir): os.system('mkdir '+outputDir)
 print outputDir
 
@@ -27,7 +39,8 @@ def findfiles(path, filtre):
 rootfilelist = []
 i=0
 for rootfile in findfiles(templateDir, '*.root'):
-    if 'rebinned_stat0p5.' not in rootfile: continue
+    if 'rebinned_stat1p1' not in rootfile: continue
+    #if '3000p0fb' not in rootfile: continue
     if 'plots' in rootfile: continue
     if 'YLD' in rootfile: continue
     rootfilelist.append(rootfile)
@@ -37,17 +50,22 @@ f = open(thetaConfigTemp, 'rU')
 thetaConfigLines = f.readlines()
 f.close()
 
+thetaVersion = {0:'utils',1:'utils2'}
 def makeThetaConfig(rFile,outDir,toFilter):
 	with open(outDir+'/'+rFile.split('/')[-1].replace('.root','.py'),'w') as fout:
 		for line in thetaConfigLines:
 			if line.startswith('input ='): fout.write('input = \''+rFile+'\'')
-			elif line.startswith('    model = build_model_from_rootfile('): 
+			elif line.startswith('	model = build_model_from_rootfile('): 
 				if len(toFilter)!=0:
-					model='    model = build_model_from_rootfile(input,include_mc_uncertainties=True,histogram_filter = (lambda s:  s.count(\''+toFilter[0]+'\')==0'
+					model='	model = build_model_from_rootfile(input,include_mc_uncertainties=False,histogram_filter = (lambda s:  s.count(\''+toFilter[0]+'\')==0'
 					for item in toFilter: 
 						if item!=toFilter[0]: model+=' and s.count(\''+item+'\')==0'
 					model+='))'
 					fout.write(model)
+				else: fout.write(line)
+			elif line.startswith('model = get_model'):
+				if do2xSyst: fout.write('model = get_model_2xSyst()\n')
+				elif doStatOnly: fout.write('model = get_model_statOnly()\n')
 				else: fout.write(line)
 			else: fout.write(line)
 	with open(outDir+'/'+rFile.split('/')[-1].replace('.root','.sh'),'w') as fout:
@@ -56,7 +74,7 @@ def makeThetaConfig(rFile,outDir,toFilter):
 		fout.write('source /cvmfs/cms.cern.ch/cmsset_default.sh\n')
 		fout.write('cmsenv\n')
 		fout.write('cd '+outDir+'\n')
-		fout.write('/home/ssagir/CMSSW_7_3_0/src/theta/utils/theta-auto.py ' + outDir+'/'+rFile.split('/')[-1].replace('.root','.py'))
+		fout.write('/home/ssagir/CMSSW_7_3_0/src/theta/'+thetaVersion[doLimits]+'/theta-auto.py ' + outDir+'/'+rFile.split('/')[-1].replace('.root','.py'))
 
 count=0
 for limitConf in limitConfs:
@@ -65,9 +83,8 @@ for limitConf in limitConfs:
 	for file in rootfilelist:
 		fileName = file.split('/')[-1]
 		signal = fileName.split('_')[2]
-		BRStr = fileName[fileName.find(signal)+len(signal):fileName.find('_'+lumiInFile)]
-		outDir = outputDir+limitConf+BRStr+'/'
-		print signal,BRStr
+		outDir = outputDir+limitConf+'/'
+		print signal
 		if not os.path.exists(outDir): os.system('mkdir '+outDir)
 		os.chdir(outDir)
 		fileDir = ''

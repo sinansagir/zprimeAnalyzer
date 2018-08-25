@@ -7,12 +7,12 @@ from weights import *
 lumiStr = str(targetlumi/1000).replace('.','p') # 1/fb
 
 def analyze(tTree,process,cutList,doAllSys,iPlot,plotDetails,category):
-	print "*****"*20
-	print "*****"*20
-	print "DISTRIBUTION:", iPlot
-	print "            -name in input trees:", plotDetails[0]
-	print "            -x-axis label is set to:", plotDetails[2]
-	print "            -using the binning as:", plotDetails[1]
+# 	print "*****"*20
+# 	print "*****"*20
+# 	print "DISTRIBUTION:", iPlot
+# 	print "            -name in input trees:", plotDetails[0]
+# 	print "            -x-axis label is set to:", plotDetails[2]
+# 	print "            -using the binning as:", plotDetails[1]
 	plotTreeName=plotDetails[0]
 	xbins=array('d', plotDetails[1])
 	xAxisLabel=plotDetails[2]
@@ -27,37 +27,53 @@ def analyze(tTree,process,cutList,doAllSys,iPlot,plotDetails,category):
 	print "/////"*5
 
 	# Define categories
-	delY  = category['isEM']
+	isEM  = category['isEM']
 	nttag = category['nttag']
 	nWtag = category['nWtag']
 	nbtag = category['nbtag']
 	njets = category['njets']
-	catStr = 'is'+delY+'_nT'+nttag+'_nW'+nWtag+'_nB'+nbtag+'_nJ'+njets
+	catStr = 'is'+isEM+'_nT'+nttag+'_nW'+nWtag+'_nB'+nbtag+'_nJ'+njets
 	catStr = catStr.replace('_nT0p','').replace('_nW0p','').replace('_nB0p','').replace('_nJ0p','')
 
 	# Define general cuts
-	cut  = '(1)'
-	cut += ' && (NumAK8Jets >= 2)'
-	cut += ' && (Jet0Pt > '+str(cutList['jet1PtCut'])+')'
-	cut += ' && (Jet1Pt > '+str(cutList['jet2PtCut'])+')'
-	cut += ' && (fabs(Jet0Eta) < 2.4) && (fabs(Jet1Eta) < 2.4)'
-	if 'SDM' not in iPlot: 
-		cut += ' && (Jet0SDmass > 105) && (Jet0SDmass < 210)'
-		cut += ' && (Jet1SDmass > 105) && (Jet1SDmass < 210)'
-	if 'Tau32' not in iPlot: cut += ' && (Jet0Tau3/Jet0Tau2 < 0.65) && (Jet1Tau3/Jet1Tau2 < 0.65)'
+	cut  = '((isSingEl && lepPt>80) || (isSingMu && lepPt>55))'
+	cut += ' && ((isSingEl && metPt>120) || (isSingMu && metPt>50))'
+	cut += ' && (isSingEl || (metPt+lepPt)>150)'
+	cut += ' && ((isSingEl && leadJetPt>185) || (isSingMu && leadJetPt>150))'
+	cut += ' && ((isSingEl && subLeadJetPt>50) || (isSingMu && subLeadJetPt>50))'
+	cut += ' && (minDR_lepJet>0.4 || ptRel_lepJet>25)'
+	if 'Chi2' not in iPlot: cut += ' && ((thadChi2+tlepChi2)<30)'
+	if iPlot!='zpDeltaR': cut += ' && (zpDeltaR > 1)'
+	if 'topAK8' in iPlot: cut += ' && (Ntoptagged == 1)'
+	#cut += ' && (jetAK8Pt[0] > '+str(cutList['jet1PtCut'])+')'
+	#cut += ' && (jetAK8Pt[1] > '+str(cutList['jet2PtCut'])+')'
+	#cut += ' && (fabs(jetAK8Eta[0]) < 2.4) && (fabs(jetAK8Eta[1]) < 2.4)'
+	#if 'SDM' not in iPlot: 
+	#	cut += ' && (topAK8SDMass > 105) && (topAK8SDMass < 210)'
+	#	#cut += ' && (jetAK8SDMass[1] > 105) && (jetAK8SDMass[1] < 210)'
+	#if 'Tau32' not in iPlot: cut += ' && (topAK8Tau32 < 0.65)'# && (jetAK8Tau3[1]/jetAK8Tau2[1] < 0.65)'
+	
+	if process=='TTmtt0to1000inc' or process=='QCDmjj0to1000inc': 
+		cut += ' && (genTTorJJMass<1000)'
+	elif process=='TTmtt1000toInfinc' or process=='QCDmjj1000toInfinc': 
+		cut += ' && (genTTorJJMass>=1000)'
 
 	weightStr = '1'
 	if 'Data' not in process: weightStr += ' * '+str(weight[process])
 
 	# Design the tagging cuts for categories
-	delYCut=''
-	if delY=='LT': delYCut+=' && deltaY <= '+str(cutList['delYCut'])
-	elif delY=='GT': delYCut+=' && deltaY > '+str(cutList['delYCut'])
+	isEMCut=''
+	if isEM=='E': isEMCut+=' && (isSingEl==1 && isSingMu==0) '
+	elif isEM=='M': isEMCut+=' && (isSingMu==1 && isSingEl==0) '
 
 	CSVM = '0.8'
-	nttagString = 'NJetsTtagged_0p81'
+	nttagString = 'Ntoptagged'
 	nWtagString = 'NJetsWtagged_0p6_notTtagged'
-	nbtagString = '((Jet0SDsubjet0bdisc>'+CSVM+' || Jet0SDsubjet1bdisc>'+CSVM+') + (Jet1SDsubjet0bdisc>'+CSVM+' || Jet1SDsubjet1bdisc>'+CSVM+'))'
+	nbtagString = ''
+	if nttag=='0': nbtagString = 'tlepLeadAK4BTag/2'
+	elif nttag=='1': nbtagString = 'topAK8BTag'
+	elif nttag=='0p': nbtagString = '((Ntoptagged==0 && tlepLeadAK4BTag/2) || (Ntoptagged==1 && topAK8BTag))'
+	#nbtagString = '((Jet0SDsubjet0bdisc>'+CSVM+' || Jet0SDsubjet1bdisc>'+CSVM+') + (Jet1SDsubjet0bdisc>'+CSVM+' || Jet1SDsubjet1bdisc>'+CSVM+'))'
 	njetsString = 'NJets_JetSubCalc'
 	nttagCut = ''
 	if 'p' in nttag: nttagCut+=' && '+nttagString+'>='+nttag[:-1]
@@ -79,21 +95,23 @@ def analyze(tTree,process,cutList,doAllSys,iPlot,plotDetails,category):
 	else: njetsCut+=' && '+njetsString+'=='+njets
 	if njets=='0p': njetsCut=''
 
-	fullcut = cut+delYCut+nttagCut+nWtagCut+nbtagCut+njetsCut
+	fullcut = cut+isEMCut+nttagCut+nWtagCut+nbtagCut+njetsCut
 
 	print 'plotTreeName: '+plotTreeName
-	print 'deltaY: '+delY+' #ttags: '+nttag+' #Wtags: '+nWtag+' #btags: '+nbtag+' #jets: '+njets
+	print 'isEM: '+isEM+' #ttags: '+nttag+' #Wtags: '+nWtag+' #btags: '+nbtag+' #jets: '+njets
 	print "Weights:",weightStr
 	print 'Cuts: '+fullcut
 
 	# Declare histograms
 	hists = {}
-	if isPlot2D: hists[iPlot+'_'+lumiStr+'fb_'+catStr+'_'+process]  = TH2D(iPlot+'_'+lumiStr+'fb_'+catStr+'_'+process,yAxisLabel+xAxisLabel,len(ybins)-1,ybins,len(xbins)-1,xbins)
-	else: hists[iPlot+'_'+lumiStr+'fb_'+catStr+'_'+process]  = TH1D(iPlot+'_'+lumiStr+'fb_'+catStr+'_'+process,xAxisLabel,len(xbins)-1,xbins)
+	if isPlot2D: hists[iPlot+'_'+lumiStr+'fbinv_'+catStr+'_'+process]  = TH2D(iPlot+'_'+lumiStr+'fbinv_'+catStr+'_'+process,yAxisLabel+xAxisLabel,len(ybins)-1,ybins,len(xbins)-1,xbins)
+	else: hists[iPlot+'_'+lumiStr+'fbinv_'+catStr+'_'+process]  = TH1D(iPlot+'_'+lumiStr+'fbinv_'+catStr+'_'+process,xAxisLabel,len(xbins)-1,xbins)
+	#hists[iPlot+'_'+lumiStr+'fbinv_'+catStr+'_'+process]  = TH1D("histoname1","histotitle1",100,0,6000)
 	for key in hists.keys(): hists[key].Sumw2()
 
 	# DRAW histograms
-	tTree[process].Draw(plotTreeName+' >> '+iPlot+'_'+lumiStr+'fb_'+catStr+'_' +process, weightStr+'*('+fullcut+')', 'GOFF')
+	tTree[process].Draw(plotTreeName+' >> '+iPlot+'_'+lumiStr+'fbinv_'+catStr+'_' +process, weightStr+'*('+fullcut+')', 'GOFF')
+	#tTree[process].Draw("zpMass >> histoname1","1","GOFF")
 	
 	for key in hists.keys(): hists[key].SetDirectory(0)	
 	return hists

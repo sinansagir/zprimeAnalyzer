@@ -11,31 +11,40 @@ from utils import *
 gROOT.SetBatch(1)
 start_time = time.time()
 
-lumiStr = str(targetlumi/1000).replace('.','p') # 1/fb
+lumiStrOrg = str(targetlumi/1000).replace('.','p') # 1/fb
 
 region='SR' #PS,SR,TTCR,WJCR
-isCategorized=0
+isCategorized=1
 cutString=''#'DY1.0_1jet400_2jet400'
-if region=='SR': pfix='templates_'
+if region=='SR': pfix='templates_zpMass_'
 if not isCategorized: pfix='kinematics_'+region+'_'
-pfix+='2018_4_29'
+pfix+='test_2018_8_23'
 outDir = os.getcwd()+'/'+pfix+'/'+cutString
 
 scaleSignalXsecTo1pb = True # this has to be "True" if you are making templates for limit calculation!!!!!!!!
-scaleLumi = False
-lumiScaleCoeff = 36200./36459.
+scaleLumi = True
+newTargetlumi = 3000000.
 doAllSys = False
 doQ2sys = False
 if not doAllSys: doQ2sys = False
 systematicList = ['pileup','jec','jer','jms','jmr','tau21','taupt','topsf','toppt','ht','muR','muF','muRFcorrd','trigeff','btag','mistag']
 normalizeRENORM_PDF = False #normalize the renormalization/pdf uncertainties to nominal templates --> normalizes signal processes only !!!!
-rebinBy = -1 #performs a regular rebinning with "Rebin(rebinBy)", put -1 if rebinning is not desired
+rebinBy = 2 #performs a regular rebinning with "Rebin(rebinBy)", put -1 if rebinning is not desired
 
-bkgGrupList = ['tt','qcd']
+doTTinc = False
+bkgGrupList = ['tt','sitop','wjets','zjets','qcd']
 bkgProcList = []#'tt','qcd']
 bkgProcs = {}
-bkgProcs['tt'] = ['TTmtt1000toInf']
-bkgProcs['qcd'] = ['QCDmjj1000toInf']
+bkgProcs['tt'] = ['TTmtt1000toInf','TTmtt0to1000inc','TTmtt1000toInfinc']
+if doTTinc: bkgProcs['tt'] = ['TTinc']
+bkgProcs['sitop'] = ['STs','STt','STbt','STtW','STbtW']
+bkgProcs['wjets'] = ['WJetsInc']
+bkgProcs['zjets'] = ['DyHT70to100','DyHT100to200','DyHT200to400','DyHT400to600','DyHT600to800','DyHT800to1200','DyHT1200to2500','DyHT2500toInf']
+bkgProcs['ww'] = ['WW']
+#bkgProcs['qcd'] = ['QCDPt15to7000']
+#bkgProcs['qcd'] = ['QCDflatPt15to7000']
+bkgProcs['qcd'] = ['QCDPt50to80','QCDPt80to120','QCDPt120to170','QCDPt170to300','QCDPt300to470','QCDPt470to600','QCDPt600to800','QCDPt800to1000','QCDPt1000toInf']
+#bkgProcs['qcd'] = ['QCDPt170to300','QCDPt300to470','QCDPt470to600','QCDPt600to800','QCDPt800to1000','QCDPt1000toInf']
 dataList = ['Data']
 
 htProcs = []#['ewk','WJets']
@@ -43,15 +52,16 @@ topptProcs = []#['top','TTJets']
 bkgProcs['top_q2up'] = []#bkgProcs['T']+['TTJetsPHQ2U']#'TtWQ2U','TbtWQ2U']
 bkgProcs['top_q2dn'] = []#bkgProcs['T']+['TTJetsPHQ2D']#'TtWQ2D','TbtWQ2D']
 
-massList = range(3000,5000+1,1000)
-if region=='PS': massList = [3000,4000,5000]
-sigList = ['RSGM'+str(mass) for mass in massList]
+massList = range(2000,6000+1,1000)
+sigList = ['ZpM'+str(mass) for mass in massList]
 
-isEMlist = ['LT','GT']
-nttaglist = ['0p']
+isEMlist = ['E','M']
+nttaglist = ['0p','0','1']
 nWtaglist = ['0p']
-nbtaglist = ['0','1','2']
-if not isCategorized: nbtaglist = ['0p']
+nbtaglist = ['0p','0','1']#,'2']
+if not isCategorized: 
+	nttaglist = ['0p']
+	nbtaglist = ['0p']
 njetslist=['0p']
 
 catList = ['is'+item[0]+'_nT'+item[1]+'_nW'+item[2]+'_nB'+item[3]+'_nJ'+item[4] for item in list(itertools.product(isEMlist,nttaglist,nWtaglist,nbtaglist,njetslist))]
@@ -69,6 +79,10 @@ muIsoSys = 0.0 #muon isolation uncertainty
 
 elcorrdSys = 0.0#math.sqrt(lumiSys**2+eltrigSys**2+elIdSys**2+elIsoSys**2)
 mucorrdSys = 0.0#math.sqrt(lumiSys**2+mutrigSys**2+muIdSys**2+muIsoSys**2)
+
+lumiScaleCoeff = newTargetlumi/targetlumi
+lumiStr = lumiStrOrg
+if scaleLumi: lumiStr=str(newTargetlumi/1000).replace('.','p') # 1/fb
 	
 if 'CR' in region: postTag = 'isCR_'
 else: postTag = 'isSR_'
@@ -79,7 +93,7 @@ def makeThetaCats(datahists,sighists,bkghists,discriminant):
 	yieldTable = {}
 	yieldStatErrTable = {}
 	for cat in catList:
-		histoPrefix=discriminant+'_'+lumiStr+'fb_'+cat
+		histoPrefix=discriminant+'_'+lumiStr+'fbinv_'+cat
 		yieldTable[histoPrefix]={}
 		yieldStatErrTable[histoPrefix]={}
 		if doAllSys:
@@ -95,21 +109,22 @@ def makeThetaCats(datahists,sighists,bkghists,discriminant):
 	hists={}
 	for cat in catList:
 		print "              processing cat: "+cat
-		histoPrefix=discriminant+'_'+lumiStr+'fb_'+cat
+		histoPrefix=discriminant+'_'+lumiStr+'fbinv_'+cat
+		histoPrefixOrg=histoPrefix.replace(lumiStr,lumiStrOrg)
 
 		#Group data processes
-		hists['data'+cat] = datahists[histoPrefix+'_'+dataList[0]].Clone(histoPrefix+'__DATA')
+		hists['data'+cat] = datahists[histoPrefixOrg+'_'+dataList[0]].Clone(histoPrefix+'__DATA')
 		for dat in dataList:
-			if dat!=dataList[0]: hists['data'+cat].Add(datahists[histoPrefix+'_'+dat])
+			if dat!=dataList[0]: hists['data'+cat].Add(datahists[histoPrefixOrg+'_'+dat])
 		
 		#Group processes
 		for proc in bkgProcList+bkgGrupList:
-			hists[proc+cat] = bkghists[histoPrefix+'_'+bkgProcs[proc][0]].Clone(histoPrefix+'__'+proc)
+			hists[proc+cat] = bkghists[histoPrefixOrg+'_'+bkgProcs[proc][0]].Clone(histoPrefix+'__'+proc)
 			for bkg in bkgProcs[proc]:
-				if bkg!=bkgProcs[proc][0]: hists[proc+cat].Add(bkghists[histoPrefix+'_'+bkg])
+				if bkg!=bkgProcs[proc][0]: hists[proc+cat].Add(bkghists[histoPrefixOrg+'_'+bkg])
 
 		#get signal
-		for signal in sigList: hists[signal+cat] = sighists[histoPrefix+'_'+signal].Clone(histoPrefix+'__sig')
+		for signal in sigList: hists[signal+cat] = sighists[histoPrefixOrg+'_'+signal].Clone(histoPrefix+'__sig')
 
 		#systematics
 		if doAllSys:
@@ -118,27 +133,27 @@ def makeThetaCats(datahists,sighists,bkghists,discriminant):
 					for proc in bkgProcList+bkgGrupList:
 						if syst=='toppt' and proc not in topptProcs: continue
 						if syst=='ht' and proc not in htProcs: continue
-						hists[proc+cat+syst+ud] = bkghists[histoPrefix.replace(discriminant,discriminant+syst+ud)+'_'+bkgProcs[proc][0]].Clone(histoPrefix+'__'+proc+'__'+syst+'__'+ud.replace('Up','plus').replace('Down','minus'))
+						hists[proc+cat+syst+ud] = bkghists[histoPrefixOrg.replace(discriminant,discriminant+syst+ud)+'_'+bkgProcs[proc][0]].Clone(histoPrefix+'__'+proc+'__'+syst+'__'+ud.replace('Up','plus').replace('Down','minus'))
 						for bkg in bkgProcs[proc]:
-							if bkg!=bkgProcs[proc][0]: hists[proc+cat+syst+ud].Add(bkghists[histoPrefix.replace(discriminant,discriminant+syst+ud)+'_'+bkg])
+							if bkg!=bkgProcs[proc][0]: hists[proc+cat+syst+ud].Add(bkghists[histoPrefixOrg.replace(discriminant,discriminant+syst+ud)+'_'+bkg])
 					if syst=='toppt' or syst=='ht': continue
-					for signal in sigList: hists[signal+cat+syst+ud] = sighists[histoPrefix.replace(discriminant,discriminant+syst+ud)+'_'+signal].Clone(histoPrefix+'__sig__'+syst+'__'+ud.replace('Up','plus').replace('Down','minus'))
+					for signal in sigList: hists[signal+cat+syst+ud] = sighists[histoPrefixOrg.replace(discriminant,discriminant+syst+ud)+'_'+signal].Clone(histoPrefix+'__sig__'+syst+'__'+ud.replace('Up','plus').replace('Down','minus'))
 			for pdfInd in range(100):
 				for proc in bkgProcList+bkgGrupList:
-					hists[proc+cat+'pdf'+str(pdfInd)] = bkghists[histoPrefix.replace(discriminant,discriminant+'pdf'+str(pdfInd))+'_'+bkgProcs[proc][0]].Clone(histoPrefix+'__'+proc+'__pdf'+str(pdfInd))
+					hists[proc+cat+'pdf'+str(pdfInd)] = bkghists[histoPrefixOrg.replace(discriminant,discriminant+'pdf'+str(pdfInd))+'_'+bkgProcs[proc][0]].Clone(histoPrefix+'__'+proc+'__pdf'+str(pdfInd))
 					for bkg in bkgProcs[proc]:
-						if bkg!=bkgProcs[proc][0]: hists[proc+cat+'pdf'+str(pdfInd)].Add(bkghists[histoPrefix.replace(discriminant,discriminant+'pdf'+str(pdfInd))+'_'+bkg])
-				for signal in sigList: hists[signal+cat+'pdf'+str(pdfInd)] = sighists[histoPrefix.replace(discriminant,discriminant+'pdf'+str(pdfInd))+'_'+signal].Clone(histoPrefix+'__sig__pdf'+str(pdfInd))
+						if bkg!=bkgProcs[proc][0]: hists[proc+cat+'pdf'+str(pdfInd)].Add(bkghists[histoPrefixOrg.replace(discriminant,discriminant+'pdf'+str(pdfInd))+'_'+bkg])
+				for signal in sigList: hists[signal+cat+'pdf'+str(pdfInd)] = sighists[histoPrefixOrg.replace(discriminant,discriminant+'pdf'+str(pdfInd))+'_'+signal].Clone(histoPrefix+'__sig__pdf'+str(pdfInd))
 										
 		if doQ2sys:
 			for proc in bkgProcList+bkgGrupList:
 				if proc+'_q2up' not in bkgProcs.keys(): continue
-				hists[proc+cat+'q2Up'] = bkghists[histoPrefix+'_'+bkgProcs[proc+'_q2up'][0]].Clone(histoPrefix+'__'+proc+'__q2__plus')
-				hists[proc+cat+'q2Down'] = bkghists[histoPrefix+'_'+bkgProcs[proc+'_q2dn'][0]].Clone(histoPrefix+'__'+proc+'__q2__minus')
+				hists[proc+cat+'q2Up'] = bkghists[histoPrefixOrg+'_'+bkgProcs[proc+'_q2up'][0]].Clone(histoPrefix+'__'+proc+'__q2__plus')
+				hists[proc+cat+'q2Down'] = bkghists[histoPrefixOrg+'_'+bkgProcs[proc+'_q2dn'][0]].Clone(histoPrefix+'__'+proc+'__q2__minus')
 				for bkg in bkgProcs[proc+'_q2up']:
-					if bkg!=bkgProcs[proc+'_q2up'][0]: hists[proc+cat+'q2Up'].Add(bkghists[histoPrefix+'_'+bkg])
+					if bkg!=bkgProcs[proc+'_q2up'][0]: hists[proc+cat+'q2Up'].Add(bkghists[histoPrefixOrg+'_'+bkg])
 				for bkg in bkgProcs[proc+'_q2dn']:
-					if bkg!=bkgProcs[proc+'_q2dn'][0]: hists[proc+cat+'q2Down'].Add(bkghists[histoPrefix+'_'+bkg])
+					if bkg!=bkgProcs[proc+'_q2dn'][0]: hists[proc+cat+'q2Down'].Add(bkghists[histoPrefixOrg+'_'+bkg])
 	
 		#+/- 1sigma variations of shape systematics
 		if doAllSys:
@@ -191,7 +206,7 @@ def makeThetaCats(datahists,sighists,bkghists,discriminant):
 	print "       WRITING THETA TEMPLATES: "
 	for signal in sigList:
 		print "              ... "+signal
-		thetaRfileName = outDir+'/templates_'+discriminant+'_'+signal+'_'+lumiStr+'fb'+'.root'
+		thetaRfileName = outDir+'/templates_'+discriminant+'_'+signal+'_'+lumiStr+'fbinv'+'.root'
 		thetaRfile = TFile(thetaRfileName,'RECREATE')
 		for cat in catList:
 			for proc in bkgGrupList+[signal]:
@@ -214,66 +229,66 @@ def makeThetaCats(datahists,sighists,bkghists,discriminant):
 
 	#Combine templates:
 	print "       WRITING COMBINE TEMPLATES: "
-	combineRfileName = outDir+'/templates_'+discriminant+'_'+lumiStr+'fb'+'.root'
+	combineRfileName = outDir+'/templates_'+discriminant+'_'+lumiStr+'fbinv'+'.root'
 	combineRfile = TFile(combineRfileName,'RECREATE')
 	for cat in catList:
 		print "              ... "+cat
 		for signal in sigList:
 			mass = [str(mass) for mass in massList if str(mass) in signal][0]
-			hists[signal+cat].SetName(hists[signal+cat].GetName().replace('fb_','fb_'+postTag).replace('__sig','__'+signal.replace('M'+mass,'')+'M'+mass))
+			hists[signal+cat].SetName(hists[signal+cat].GetName().replace('fbinv_','fbinv_'+postTag).replace('__sig','__'+signal.replace('M'+mass,'')+'M'+mass))
 			hists[signal+cat].Write()
 			if doAllSys:
 				for syst in systematicList:
 					if syst=='toppt' or syst=='ht': continue
-					hists[signal+cat+syst+'Up'].SetName(hists[signal+cat+syst+'Up'].GetName().replace('fb_','fb_'+postTag).replace('__sig','__'+signal.replace('M'+mass,'')+'M'+mass).replace('__plus','Up'))
-					hists[signal+cat+syst+'Down'].SetName(hists[signal+cat+syst+'Down'].GetName().replace('fb_','fb_'+postTag).replace('__sig','__'+signal.replace('M'+mass,'')+'M'+mass).replace('__minus','Down'))
+					hists[signal+cat+syst+'Up'].SetName(hists[signal+cat+syst+'Up'].GetName().replace('fbinv_','fbinv_'+postTag).replace('__sig','__'+signal.replace('M'+mass,'')+'M'+mass).replace('__plus','Up'))
+					hists[signal+cat+syst+'Down'].SetName(hists[signal+cat+syst+'Down'].GetName().replace('fbinv_','fbinv_'+postTag).replace('__sig','__'+signal.replace('M'+mass,'')+'M'+mass).replace('__minus','Down'))
 					hists[signal+cat+syst+'Up'].Write()
 					hists[signal+cat+syst+'Down'].Write()
 				for pdfInd in range(100): 
-					hists[signal+cat+'pdf'+str(pdfInd)].SetName(hists[signal+cat+'pdf'+str(pdfInd)].GetName().replace('fb_','fb_'+postTag).replace('__sig','__'+signal.replace('M'+mass,'')+'M'+mass))
+					hists[signal+cat+'pdf'+str(pdfInd)].SetName(hists[signal+cat+'pdf'+str(pdfInd)].GetName().replace('fbinv_','fbinv_'+postTag).replace('__sig','__'+signal.replace('M'+mass,'')+'M'+mass))
 					hists[signal+cat+'pdf'+str(pdfInd)].Write()
 		for proc in bkgGrupList:
-			hists[proc+cat].SetName(hists[proc+cat].GetName().replace('fb_','fb_'+postTag))
+			hists[proc+cat].SetName(hists[proc+cat].GetName().replace('fbinv_','fbinv_'+postTag))
 			hists[proc+cat].Write()
 			if doAllSys:
 				for syst in systematicList:
 					if syst=='toppt' and proc not in topptProcs: continue
 					if syst=='ht' and proc not in htProcs: continue
-					hists[proc+cat+syst+'Up'].SetName(hists[proc+cat+syst+'Up'].GetName().replace('fb_','fb_'+postTag).replace('__plus','Up'))
-					hists[proc+cat+syst+'Down'].SetName(hists[proc+cat+syst+'Down'].GetName().replace('fb_','fb_'+postTag).replace('__minus','Down'))
+					hists[proc+cat+syst+'Up'].SetName(hists[proc+cat+syst+'Up'].GetName().replace('fbinv_','fbinv_'+postTag).replace('__plus','Up'))
+					hists[proc+cat+syst+'Down'].SetName(hists[proc+cat+syst+'Down'].GetName().replace('fbinv_','fbinv_'+postTag).replace('__minus','Down'))
 					hists[proc+cat+syst+'Up'].Write()
 					hists[proc+cat+syst+'Down'].Write()
 				for pdfInd in range(100): 
-					hists[proc+cat+'pdf'+str(pdfInd)].SetName(hists[proc+cat+'pdf'+str(pdfInd)].GetName().replace('fb_','fb_'+postTag))
+					hists[proc+cat+'pdf'+str(pdfInd)].SetName(hists[proc+cat+'pdf'+str(pdfInd)].GetName().replace('fbinv_','fbinv_'+postTag))
 					hists[proc+cat+'pdf'+str(pdfInd)].Write()
 			if doQ2sys:
 				if proc+'_q2up' not in bkgProcs.keys(): continue
-				hists[proc+cat+'q2Up'].SetName(hists[proc+cat+'q2Up'].GetName().replace('fb_','fb_'+postTag).replace('__plus','Up'))
-				hists[proc+cat+'q2Down'].SetName(hists[proc+cat+'q2Down'].GetName().replace('fb_','fb_'+postTag).replace('__minus','Down'))
+				hists[proc+cat+'q2Up'].SetName(hists[proc+cat+'q2Up'].GetName().replace('fbinv_','fbinv_'+postTag).replace('__plus','Up'))
+				hists[proc+cat+'q2Down'].SetName(hists[proc+cat+'q2Down'].GetName().replace('fbinv_','fbinv_'+postTag).replace('__minus','Down'))
 				hists[proc+cat+'q2Up'].Write()
 				hists[proc+cat+'q2Down'].Write()
-		hists['data'+cat].SetName(hists['data'+cat].GetName().replace('fb_','fb_'+postTag).replace('DATA','data_obs'))
+		hists['data'+cat].SetName(hists['data'+cat].GetName().replace('fbinv_','fbinv_'+postTag).replace('DATA','data_obs'))
 		hists['data'+cat].Write()
 	combineRfile.Close()
 
 	print "       WRITING SUMMARY TEMPLATES: "
 	for signal in sigList:
 		print "              ... "+signal
-		yldRfileName = outDir+'/templates_YLD_'+signal+'_'+lumiStr+'fb.root'
+		yldRfileName = outDir+'/templates_YLD_'+signal+'_'+lumiStr+'fbinv.root'
 		yldRfile = TFile(yldRfileName,'RECREATE')
 		for isEM in isEMlist:	
 			for proc in bkgGrupList+['data',signal]:
 				yldHists = {}
-				yldHists[isEM+proc]=TH1F('YLD_'+lumiStr+'fb_is'+isEM+'_nT0p_nW0p_nB0p_nJ0p__'+proc.replace(signal,'sig').replace('data','DATA'),'',len(tagList),0,len(tagList))
+				yldHists[isEM+proc]=TH1F('YLD_'+lumiStr+'fbinv_is'+isEM+'_nT0p_nW0p_nB0p_nJ0p__'+proc.replace(signal,'sig').replace('data','DATA'),'',len(tagList),0,len(tagList))
 				if doAllSys and proc!='data':
 					for syst in systematicList:
 						for ud in ['Up','Down']:
 							if syst=='toppt' and proc not in topptProcs: continue
 							if syst=='ht' and proc not in htProcs: continue
-							yldHists[isEM+proc+syst+ud]=TH1F('YLD_'+lumiStr+'fb_is'+isEM+'_nT0p_nW0p_nB0p_nJ0p__'+proc.replace(signal,'sig').replace('data','DATA')+'__'+syst+'__'+ud.replace('Up','plus').replace('Down','minus'),'',len(tagList),0,len(tagList))
+							yldHists[isEM+proc+syst+ud]=TH1F('YLD_'+lumiStr+'fbinv_is'+isEM+'_nT0p_nW0p_nB0p_nJ0p__'+proc.replace(signal,'sig').replace('data','DATA')+'__'+syst+'__'+ud.replace('Up','plus').replace('Down','minus'),'',len(tagList),0,len(tagList))
 				if doQ2sys and proc+'_q2up' in bkgProcs.keys(): 
-					yldHists[isEM+proc+'q2Up']  =TH1F('YLD_'+lumiStr+'fb_is'+isEM+'_nT0p_nW0p_nB0p_nJ0p__'+proc.replace(signal,'sig').replace('data','DATA')+'__q2__plus','',len(tagList),0,len(tagList))
-					yldHists[isEM+proc+'q2Down']=TH1F('YLD_'+lumiStr+'fb_is'+isEM+'_nT0p_nW0p_nB0p_nJ0p__'+proc.replace(signal,'sig').replace('data','DATA')+'__q2__minus','',len(tagList),0,len(tagList))
+					yldHists[isEM+proc+'q2Up']  =TH1F('YLD_'+lumiStr+'fbinv_is'+isEM+'_nT0p_nW0p_nB0p_nJ0p__'+proc.replace(signal,'sig').replace('data','DATA')+'__q2__plus','',len(tagList),0,len(tagList))
+					yldHists[isEM+proc+'q2Down']=TH1F('YLD_'+lumiStr+'fbinv_is'+isEM+'_nT0p_nW0p_nB0p_nJ0p__'+proc.replace(signal,'sig').replace('data','DATA')+'__q2__minus','',len(tagList),0,len(tagList))
 				ibin = 1
 				for cat in catList:
 					if 'is'+isEM not in cat: continue
@@ -295,7 +310,7 @@ def makeThetaCats(datahists,sighists,bkghists,discriminant):
 						if 'p' in njets: binStr+='#geq'+njets[:-1]+'j'
 						else: binStr+=njets+'j'
 					if binStr.endswith('/'): binStr=binStr[:-1]
-					histoPrefix=discriminant+'_'+lumiStr+'fb_'+cat
+					histoPrefix=discriminant+'_'+lumiStr+'fbinv_'+cat
 					yldHists[isEM+proc].SetBinContent(ibin,yieldTable[histoPrefix][proc])
 					yldHists[isEM+proc].SetBinError(ibin,yieldStatErrTable[histoPrefix][proc])
 					yldHists[isEM+proc].GetXaxis().SetBinLabel(ibin,binStr)
@@ -333,7 +348,7 @@ def makeThetaCats(datahists,sighists,bkghists,discriminant):
 	table.append(['YIELDS']+[proc for proc in bkgProcList+['data']])
 	for cat in catList:
 		row = [cat]
-		histoPrefix=discriminant+'_'+lumiStr+'fb_'+cat
+		histoPrefix=discriminant+'_'+lumiStr+'fbinv_'+cat
 		for proc in bkgProcList+['data']:
 			row.append(str(yieldTable[histoPrefix][proc])+' $\pm$ '+str(yieldStatErrTable[histoPrefix][proc]))
 		table.append(row)			
@@ -344,7 +359,7 @@ def makeThetaCats(datahists,sighists,bkghists,discriminant):
 	table.append(['YIELDS']+[proc for proc in bkgGrupList+['data']])
 	for cat in catList:
 		row = [cat]
-		histoPrefix=discriminant+'_'+lumiStr+'fb_'+cat
+		histoPrefix=discriminant+'_'+lumiStr+'fbinv_'+cat
 		for proc in bkgGrupList+['data']:
 			row.append(str(yieldTable[histoPrefix][proc])+' $\pm$ '+str(yieldStatErrTable[histoPrefix][proc]))
 		table.append(row)
@@ -355,7 +370,7 @@ def makeThetaCats(datahists,sighists,bkghists,discriminant):
 	table.append(['YIELDS']+[proc for proc in sigList])
 	for cat in catList:
 		row = [cat]
-		histoPrefix=discriminant+'_'+lumiStr+'fb_'+cat
+		histoPrefix=discriminant+'_'+lumiStr+'fbinv_'+cat
 		for proc in sigList:
 			row.append(str(yieldTable[histoPrefix][proc])+' $\pm$ '+str(yieldStatErrTable[histoPrefix][proc]))
 		table.append(row)
@@ -374,7 +389,7 @@ def makeThetaCats(datahists,sighists,bkghists,discriminant):
 				for cat in catList:
 					if not ('is'+isEM in cat and 'nT'+nttag in cat): continue
 					modTag = cat[cat.find('nT'):cat.find('nJ')-3]
-					histoPrefix=discriminant+'_'+lumiStr+'fb_'+cat
+					histoPrefix=discriminant+'_'+lumiStr+'fbinv_'+cat
 					yieldtemp = 0.
 					yielderrtemp = 0.
 					if proc=='totBkg' or proc=='dataOverBkg':
@@ -416,7 +431,7 @@ def makeThetaCats(datahists,sighists,bkghists,discriminant):
 			for cat in catList:
 				if not ('isE' in cat and 'nT'+nttag in cat): continue
 				modTag = cat[cat.find('nT'):cat.find('nJ')-3]
-				histoPrefixE = discriminant+'_'+lumiStr+'fb_'+cat
+				histoPrefixE = discriminant+'_'+lumiStr+'fbinv_'+cat
 				histoPrefixM = histoPrefixE.replace('isE','isM')
 				yieldtemp = 0.
 				yieldtempE = 0.
@@ -465,7 +480,7 @@ def makeThetaCats(datahists,sighists,bkghists,discriminant):
 				for ud in ['Up','Down']:
 					row = [syst+ud]
 					for cat in catList:
-						histoPrefix = discriminant+'_'+lumiStr+'fb_'+cat
+						histoPrefix = discriminant+'_'+lumiStr+'fbinv_'+cat
 						nomHist = histoPrefix
 						shpHist = histoPrefix+syst+ud
 						try: row.append(' & '+str(round(yieldTable[shpHist][proc]/(yieldTable[nomHist][proc]+1e-20),2)))
@@ -477,7 +492,7 @@ def makeThetaCats(datahists,sighists,bkghists,discriminant):
 					table.append(row)
 			table.append(['break'])
 		
-	out=open(outDir+'/yields_'+discriminant+'_'+lumiStr+'fb'+'.txt','w')
+	out=open(outDir+'/yields_'+discriminant+'_'+lumiStr+'fbinv'+'.txt','w')
 	printTable(table,out)
 
 def findfiles(path, filtre):
@@ -508,7 +523,9 @@ for iPlot in iPlotList:
 	
 	#Re-scale lumi
 	if scaleLumi:
-		for key in bkghists.keys(): bkghists[key].Scale(lumiScaleCoeff)
+		for key in bkghists.keys(): 
+			bkghists[key].Scale(lumiScaleCoeff)
+			#if 'QCDPt170to300' in key: bkghists[key].Scale(1./10.)
 		for key in sighists.keys(): sighists[key].Scale(lumiScaleCoeff)
 	
 	#Rebin

@@ -1,3 +1,5 @@
+#!/usr/bin/python
+
 import ROOT as rt
 from array import array
 import os,sys,math
@@ -10,16 +12,17 @@ rt.gROOT.SetBatch(1)
 
 blind=True
 saveKey=''
-signal = 'RSG'
-lumiPlot = '36.0'
-lumiStr = '36p0'
+signal = 'Zp'
+lumiStrs = {'36p0':'36','300p0':'300','1000p0':'1000','3000p0':'3000'}
 
-mass_str = ['3000','4000','5000']
-theory_xsec = [0.1507,0.03617,0.01158][:len(mass_str)]#pb
-scale_up = [0,0,0][:len(mass_str)]#%
-scale_dn = [0,0,0][:len(mass_str)]#%
-pdf_up   = [0,0,0][:len(mass_str)]#%
-pdf_dn   = [0,0,0][:len(mass_str)]#%
+mass_str = ['2000','3000','4000','5000','6000']
+theory_xsec = [1.3*1.153,1.3*1.556*0.1,1.3*3.585*0.01,1.3*1.174*0.01,1.3*4.939*0.001]
+theory_xsec_13tev = [1.3*0.9528,1.3*0.1289,1.3*0.02807,1.3*0.009095]
+
+scale_up = [0,0,0,0,0][:len(mass_str)]#%
+scale_dn = [0,0,0,0,0][:len(mass_str)]#%
+pdf_up   = [0,0,0,0,0][:len(mass_str)]#%
+pdf_dn   = [0,0,0,0,0][:len(mass_str)]#%
 
 mass   =array('d', [float(item)/1e3 for item in mass_str])
 masserr=array('d',[0 for i in range(len(mass))])
@@ -67,7 +70,6 @@ CMS_lumi.lumi_8TeV = "18.3 fb^{-1}"
 CMS_lumi.lumi_13TeV= "35.9 fb^{-1}"
 CMS_lumi.writeExtraText = 1
 CMS_lumi.extraText = "Simulation"
-CMS_lumi.lumi_sqrtS = "36 fb^{-1} (14 TeV)" # used with iPeriod = 0, e.g. for simulation-only plots (default is an empty string)
 
 iPos = 11
 if( iPos==0 ): CMS_lumi.relPosX = 0.12
@@ -85,22 +87,23 @@ B = 0.14*H_ref
 L = 0.14*W_ref
 R = 0.04*W_ref
 
-def PlotLimits(limitDir,limitFile,chiral,tempKey):
-    histPrefix=discriminant+'_'+str(lumiStr)+'fb'+chiral
+def PlotLimits(limitDir,limitFile,lumiStr,tempKey):
+    histPrefix=discriminant+'_'+lumiStr+'fbinv'
+    lumiPlot = lumiStrs[lumiStr]
     ljust_i = 10
     print
     print 'mass'.ljust(ljust_i), 'observed'.ljust(ljust_i), 'expected'.ljust(ljust_i), '-2 Sigma'.ljust(ljust_i), '-1 Sigma'.ljust(ljust_i), '+1 Sigma'.ljust(ljust_i), '+2 Sigma'.ljust(ljust_i)
     
-    limExpected = 3
-    limObserved = 3
+    limExpected = 2
+    limObserved = 2
     for i in range(len(mass)):        
         try:
-        	if blind: fobs = open(limitDir+cutString+limitFile.replace(signal+'M3000',signal+'M'+mass_str[i]), 'rU')
-        	if not blind: fobs = open(limitDir+cutString+limitFile.replace(signal+'M3000',signal+'M'+mass_str[i]).replace('expected','observed'), 'rU')
+        	if blind: fobs = open(limitDir+cutString+limitFile.replace(signal+'M2000',signal+'M'+mass_str[i]), 'rU')
+        	if not blind: fobs = open(limitDir+cutString+limitFile.replace(signal+'M2000',signal+'M'+mass_str[i]).replace('expected','observed'), 'rU')
         	linesObs = fobs.readlines()
         	fobs.close()
         	
-        	fexp = open(limitDir+cutString+limitFile.replace(signal+'M3000',signal+'M'+mass_str[i]), 'rU')
+        	fexp = open(limitDir+cutString+limitFile.replace(signal+'M2000',signal+'M'+mass_str[i]), 'rU')
         	linesExp = fexp.readlines()
         	fexp.close()
         except: 
@@ -133,8 +136,8 @@ def PlotLimits(limitDir,limitFile,chiral,tempKey):
     print
     signExp = "="
     signObs = "="
-    if limExpected==3: signExp = "<"
-    if limObserved==3: signObs = "<"
+    if limExpected==2: signExp = "<"
+    if limObserved==2: signObs = "<"
     print "Expected lower limit "+signExp,round(limExpected,2),"TeV"
     print "Observed lower limit "+signObs,round(limObserved,2),"TeV"
     print
@@ -149,8 +152,7 @@ def PlotLimits(limitDir,limitFile,chiral,tempKey):
     obsv = rt.TVectorD(len(mass),obs)
     masserrv = rt.TVectorD(len(mass),masserr)
     obserrv = rt.TVectorD(len(mass),obserr)
-    experrv = rt.TVectorD(len(mass),experr)       
-
+    experrv = rt.TVectorD(len(mass),experr)
 
     observed = rt.TGraphAsymmErrors(massv,obsv,masserrv,masserrv,obserrv,obserrv)
     observed.SetLineColor(rt.kBlack)
@@ -182,7 +184,7 @@ def PlotLimits(limitDir,limitFile,chiral,tempKey):
     YaxisTitle = "#sigma(g^{RS}_{KK}) [pb]"
 
     expected95.Draw("a3")
-    expected95.GetYaxis().SetRangeUser(.001+.00001,1.45)
+    expected95.GetYaxis().SetRangeUser(.001+.00001,10.45)
     expected95.GetXaxis().SetRangeUser(mass[0],mass[-1])
     expected95.GetXaxis().SetTitle(XaxisTitle)
     expected95.GetXaxis().SetTitleOffset(1)
@@ -203,6 +205,7 @@ def PlotLimits(limitDir,limitFile,chiral,tempKey):
     theory.Draw("same")                                                             
         
     #draw the lumi text on the canvas
+    CMS_lumi.lumi_sqrtS = lumiPlot+" fb^{-1} (14 TeV)" # used with iPeriod = 0, e.g. for simulation-only plots (default is an empty string)
     CMS_lumi.CMS_lumi(canvas, iPeriod, iPos)
 
     legend = rt.TLegend(.37,.69,.94,.89) # top right
@@ -210,7 +213,7 @@ def PlotLimits(limitDir,limitFile,chiral,tempKey):
     legend.AddEntry(expected68, "68% expected", "f")
     legend.AddEntry(expected, "Median expected", "l")
     legend.AddEntry(expected95, "95% expected", "f")
-    legend.AddEntry(theory_xsec_gr, "Signal cross section", "lf")
+    legend.AddEntry(theory_xsec_gr, "Signal cross section", "l")
 
     legend.SetShadowColor(0)
     legend.SetFillStyle(0)
@@ -229,47 +232,49 @@ def PlotLimits(limitDir,limitFile,chiral,tempKey):
     folder = '.'
     outDir=folder+'/'+limitDir.split('/')[-3]+'plots'
     if not os.path.exists(outDir): os.system('mkdir '+outDir)
-    plotName = 'LimitPlot_'+histPrefix+'_rebinned_stat'+str(binning).replace('.','p')+saveKey+'_'+tempKey
+    plotName = 'LimitPlot_'+histPrefix+''+binning+saveKey+'_'+tempKey
     if blind: plotName+='_blind'
     canvas.SaveAs(outDir+'/'+plotName+'.eps')
     canvas.SaveAs(outDir+'/'+plotName+'.pdf')
     canvas.SaveAs(outDir+'/'+plotName+'.png')
     return round(limExpected,2), round(limObserved,2)
 
-iPlotList=['RSGMass']
-tempKeys = ['all']
+iPlotList=['zpMass']
+tempKeys = ['btagcats','nobtagcats']#,'ttagcats','nottagcats']
 cutString=''
 dirs = {
-		'RSGKK':'templates_2018_4_29_test',
+		'Zp20180812_100GeVbinsDRgt1':'templates_DRgt1_zpMass_2018_8_12',
+		'Zp20180812_17017fullsel':'templates_17017fullsel_zpMass_2018_8_12',
+		'Zp20180812_17017fullselDRgt1':'templates_17017fullselDRgt1_zpMass_2018_8_12_lim',
+		'Zp20180814':'templates_zpMass_2018_8_14_lim',
+		'Zp20180814noRFonsig':'templates_zpMass_2018_8_14_noRFonsig_lim',
+		'Zp20180817':'templates_zpMass_2018_8_17_lim',
+		'Zp20180817ttinc':'templates_ttinc_zpMass_2018_8_17_lim',
+		'Zp20180823':'templates_zpMass_2018_8_23_lim',
 		}
-dirKeyList = ['RSGKK']
-binnings = ['0p25','0p5','0p75','1p0','1p1']
+dirKeyList = ['Zp20180823']#,'Zp20180817ttinc']
+binnings = ['1p1']
 
 expLims = {}
 obsLims = {}
-for discriminant in iPlotList:
-	for dirKey in dirKeyList:
-		dir = dirs[dirKey]
-		#cutString=dir
-		expLims[dirKey+discriminant] = {}
-		obsLims[dirKey+discriminant] = {}
-		for binning in binnings:
-			expLims[dirKey+discriminant][binning] = []
-			obsLims[dirKey+discriminant][binning] = []
-			for tempKey in tempKeys:
-				limitDir='/user_data/ssagir/Zprime_limits_2018/'+dir+'/'+tempKey+'/'
-				limitFile='/limits_templates_'+discriminant+'_'+signal+'M3000'+'_'+str(lumiStr)+'fb_rebinned_stat'+str(binning).replace('.','p')+'_expected.txt'	
-				print limitDir+cutString+limitFile
-				expTemp,obsTemp = PlotLimits(limitDir,limitFile,'',tempKey)
-				expLims[dirKey+discriminant][binning].append(expTemp)
-				obsLims[dirKey+discriminant][binning].append(obsTemp)
-# print "Configs :",tempKeys
-# for dir in dirs:
-# 	print dir
-# 	for binning in binnings:
-# 		print binning
-# 		print "Expected:",expLims[dir][binning]
-# 		print "Observed:",obsLims[dir][binning]
+for lumiStr in lumiStrs.keys():
+	for discriminant in iPlotList:
+		for dirKey in dirKeyList:
+			dir = dirs[dirKey]
+			expLims[dirKey+discriminant+lumiStr] = {}
+			obsLims[dirKey+discriminant+lumiStr] = {}
+			for binning_ in binnings:
+				binning='_rebinned_stat'+binning_
+				expLims[dirKey+discriminant+lumiStr][binning_] = []
+				obsLims[dirKey+discriminant+lumiStr][binning_] = []
+				for tempKey in tempKeys:
+					limitDir='/user_data/ssagir/Zprime_limits_2018/'+dir+'/'+tempKey+'/'
+					limitFile='/limits_templates_'+discriminant+'_'+signal+'M2000'+'_'+lumiStr+'fbinv'+binning+'_expected.txt'	
+					print limitDir+cutString+limitFile
+					expTemp,obsTemp = PlotLimits(limitDir,limitFile,lumiStr,tempKey)
+					expLims[dirKey+discriminant+lumiStr][binning_].append(expTemp)
+					obsLims[dirKey+discriminant+lumiStr][binning_].append(obsTemp)
+
 for discriminant in iPlotList:
 	print discriminant
 	for dirKey in dirKeyList: print dirKey,
@@ -278,18 +283,20 @@ for discriminant in iPlotList:
 		print "////////////////////////////////"
 		print "Channel Configuration: "+tempKeys[ind]
 		print "////////////////////////////////"
-		for binning in binnings:
-			for dirKey in dirKeyList:
-				print dirKey+'_'+binning,
+		for lumiStr in lumiStrs.keys():
+			for binning in binnings:
+				for dirKey in dirKeyList:
+					print dirKey+'_'+binning+'_'+lumiStr,
 		print
 		print "Expected:"
-		for binning in binnings:
-			for dirKey in dirKeyList: 
-				print expLims[dirKey+discriminant][binning][ind],
+		for lumiStr in lumiStrs.keys():
+			for binning in binnings:
+				for dirKey in dirKeyList: 
+					print expLims[dirKey+discriminant+lumiStr][binning][ind],
 		print
-		print "Observed:"
-		for binning in binnings:
-			for dirKey in dirKeyList: 
-				print obsLims[dirKey+discriminant][binning][ind],
-		print
+# 		print "Observed:"
+# 		for binning in binnings:
+# 			for dirKey in dirKeyList: 
+# 				print obsLims[dirKey+discriminant+lumiStr][binning][ind],
+# 		print
 
