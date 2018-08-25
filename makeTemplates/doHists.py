@@ -14,7 +14,7 @@ gROOT.SetBatch(1)
 start_time = time.time()
 
 lumiStr = str(targetlumi/1000).replace('.','p') # 1/fb
-step1Dir = '/user_data/ssagir/HGCALLHCCTuples_v1_step0hadds/nominal'
+step1Dir = '/user_data/ssagir/CMSSW_7_4_7/src/zprimeAnalyzer/singleLep/inputFiles_18_8_17'
 
 """
 Note: 
@@ -25,16 +25,26 @@ The uncertainty shape shifted files will be taken from <step1Dir>/../<shape>/<pr
 --Check the set of cuts in "analyze.py"
 """
 
-bkgList = ['TTmtt1000toInf','QCDmjj1000toInf']
+bkgList = [
+'TTinc','TTmtt1000toInf','TTmtt0to1000inc','TTmtt1000toInfinc',
+'STs','STt','STbt','STtW','STbtW',
+'WJetsInc',
+'DyHT70to100','DyHT100to200','DyHT200to400','DyHT400to600','DyHT600to800','DyHT800to1200','DyHT1200to2500','DyHT2500toInf',
+'WW',
+'QCDPt15to7000',
+'QCDflatPt15to7000',
+#'QCDmjj1000toInf','QCDmjj0to1000inc','QCDmjj1000toInfinc',
+'QCDPt50to80','QCDPt80to120','QCDPt120to170','QCDPt170to300','QCDPt300to470','QCDPt470to600','QCDPt600to800','QCDPt800to1000','QCDPt1000toInf',
+]
 
 dataList = ['Data']
 
-whichSignal = 'RSG' #HTB, TT, BB, or X53X53
-massList = range(3000,5000+1,1000)
+whichSignal = 'Zp' #HTB, TT, BB, or X53X53
+massList = range(2000,6000+1,1000)
 sigList = [whichSignal+'M'+str(mass) for mass in massList]
 decays = ['']
 
-iPlot = 'RSGMass' #choose a discriminant from plotList below!
+iPlot = 'zpMass' #choose a discriminant from plotList below!
 if len(sys.argv)>2: iPlot=sys.argv[2]
 region = 'SR'
 if len(sys.argv)>3: region=sys.argv[3]
@@ -59,17 +69,17 @@ timestr='%i_%i_%i'%(cTime.hour,cTime.minute,cTime.second)
 pfix='templates_'
 if not isCategorized: pfix='kinematics_'+region+'_'
 pfix+=iPlot
-pfix+='_TEST_'+datestr#+'_'+timestr
+pfix+='_'+datestr#+'_'+timestr
 		
 if len(sys.argv)>5: isEMlist=[str(sys.argv[5])]
-else: isEMlist = ['LT','GT']
+else: isEMlist = ['E','M']
 if len(sys.argv)>6: nttaglist=[str(sys.argv[6])]
-else: nttaglist = ['0p']
+else: nttaglist = ['0p','0','1']
 if len(sys.argv)>7: nWtaglist=[str(sys.argv[7])]
 else: nWtaglist=['0p']
 if len(sys.argv)>8: nbtaglist=[str(sys.argv[8])]
 else:
-	nbtaglist=['0','1','2']
+	nbtaglist=['0p','0','1']#,'2']
 	if not isCategorized: nbtaglist = ['0p']
 if len(sys.argv)>9: njetslist=[str(sys.argv[9])]
 else: njetslist=['0p']
@@ -79,7 +89,7 @@ def readTree(file):
 		print "Error: File does not exist! Aborting ...",file
 		os._exit(1)
 	tFile = TFile(file,'READ')
-	tTree = tFile.Get('rsgluon')
+	tTree = tFile.Get('Delphes')
 	return tFile, tTree 
 
 print "READING TREES"
@@ -127,53 +137,40 @@ print "FINISHED READING"
 bigbins = [0,50,100,125,150,175,200,225,250,275,300,325,350,375,400,450,500,600,700,800,900,1000,1200,1400,1600,1800,2000,2500,3000,3500,4000,5000]
 
 plotList = {#discriminantName:(discriminantNtupleName, binning, xAxisLabel)
-	'nTrueInt':('nTrueInteractions_singleLepCalc',linspace(0, 75, 76).tolist(),';# true interactions'),
-	'NPV'   :('npu',linspace(100, 300, 201).tolist(),';PV multiplicity'),
-	'AK8NJets':('NumAK8Jets',linspace(0, 5, 6).tolist(),';AK8 jet multiplicity'),
-	'AK8Jet1Eta':('Jet0Eta',linspace(-2.4, 2.4, 21).tolist(),';Lead AK8 Jet #eta'),
-	'AK8Jet2Eta':('Jet1Eta',linspace(-2.4, 2.4, 21).tolist(),';Sublead AK8 Jet #eta'),
-	'AK8Jet1Phi':('Jet0Phi',linspace(-4, 4, 21).tolist(),';Lead AK8 Jet #phi'),
-	'AK8Jet2Phi':('Jet1Phi',linspace(-4, 4, 21).tolist(),';Sublead AK8 Jet #phi'),
-	'AK8Jet1Pt':('Jet0Pt',linspace(0, 3000, 31).tolist(),';Lead AK8 Jet p_{T} [GeV]'),
-	'AK8Jet2Pt':('Jet1Pt',linspace(0, 3000, 31).tolist(),';Sublead AK8 Jet p_{T} [GeV]'),
-	'AK8Jet1M':('Jet0M',linspace(0, 500, 51).tolist(),';Lead AK8 Jet Mass [GeV]'),
-	'AK8Jet2M':('Jet1M',linspace(0, 500, 51).tolist(),';Sublead AK8 Jet Mass [GeV]'),
-	'AK8Jet1SDM':('Jet0SDmass',linspace(0, 500, 51).tolist(),';Lead AK8 Jet SD Mass [GeV]'),
-	'AK8Jet2SDM':('Jet1SDmass',linspace(0, 500, 51).tolist(),';Sublead AK8 Jet SD Mass [GeV]'),
-	'AK8Jet1SDMcorr':('Jet0SDmass*Jet0L2RelativeCorr',linspace(0, 500, 51).tolist(),';Lead AK8 Jet SD Mass [GeV]'),
-	'AK8Jet2SDMcorr':('Jet1SDmass*Jet0L2RelativeCorr',linspace(0, 500, 51).tolist(),';Sublead AK8 Jet SD Mass [GeV]'),
-	'AK8Jet1Tau32':('Jet0Tau3/Jet0Tau2',linspace(0, 1, 51).tolist(),';Lead AK8 Jet #tau_{3}/#tau_{2}'),
-	'AK8Jet2Tau32':('Jet1Tau3/Jet1Tau2',linspace(0, 1, 51).tolist(),';Sublead AK8 Jet #tau_{3}/#tau_{2}'),
-	'AK8Jet1Tau21':('Jet0Tau2/Jet0Tau1',linspace(0, 1, 51).tolist(),';Lead AK8 Jet #tau_{2}/#tau_{1}'),
-	'AK8Jet2Tau21':('Jet1Tau2/Jet1Tau1',linspace(0, 1, 51).tolist(),';Sublead AK8 Jet #tau_{2}/#tau_{1}'),
-	'AK8Jet1MaxSubbDisc':('Jet0SDmaxbdisc',linspace(0, 1, 51).tolist(),';Lead AK8 Jet Max Subjet b Disc.'),
-	'AK8Jet2MaxSubbDisc':('Jet1SDmaxbdisc',linspace(0, 1, 51).tolist(),';Sublead AK8 Jet Max Subjet b Disc.'),
-	'AK8Jet1Sub1bDisc':('Jet0SDsubjet0bdisc',linspace(0, 1, 51).tolist(),';Lead AK8 Jet Lead Subjet b Disc.'),
-	'AK8Jet1Sub2bDisc':('Jet0SDsubjet1bdisc',linspace(0, 1, 51).tolist(),';Lead AK8 Jet Sublead Subjet b Disc.'),
-	'AK8Jet2Sub1bDisc':('Jet1SDsubjet0bdisc',linspace(0, 1, 51).tolist(),';Sublead AK8 Jet Lead Subjet b Disc.'),
-	'AK8Jet2Sub2bDisc':('Jet1SDsubjet1bdisc',linspace(0, 1, 51).tolist(),';Sublead AK8 Jet Sublead Subjet b Disc.'),
-	'AK8Jet1Mult':('Jet0Mult',linspace(0, 1000, 201).tolist(),';Lead AK8 Jet Mult'),
-	'AK8Jet2Mult':('Jet1Mult',linspace(0, 1000, 201).tolist(),';Sublead AK8 Jet Mult'),
-	'AK8Jet1CHF':('Jet0CHF',linspace(0, 1, 51).tolist(),';Lead AK8 Jet CHF'),
-	'AK8Jet2CHF':('Jet1CHF',linspace(0, 1, 51).tolist(),';Sublead AK8 Jet CHF'),
+	'lepPt':('lepPt',linspace(0, 1000, 51).tolist(),';p_{T}(l) [GeV]'),
+	'lepEta':('lepEta',linspace(-2.4, 2.4, 51).tolist(),';Lepton #eta'),
+	'lepPhi':('lepPhi',linspace(-4, 4, 51).tolist(),';Lepton #phi'),
+	'lepRelIso':('lepRelIso',linspace(0, 1, 51).tolist(),';Lepton RelIso'),
+	'lepAbsIso':('lepAbsIso',linspace(0, 1, 51).tolist(),';Lepton AbsIso'),
+	'metPt':('metPt',linspace(0, 1500, 51).tolist(),';p^{miss}_{T} [GeV]'),
+	'leadJetPt':('leadJetPt',linspace(0, 3000, 51).tolist(),';p_{T}(j_{1}) [GeV]'),
+	'subLeadJetPt':('subLeadJetPt',linspace(0, 1500, 51).tolist(),';p_{T}(j_{2}) [GeV]'),
+	'tlepLeadAK4Pt':('tlepLeadAK4Pt',linspace(0, 1500, 51).tolist(),';p_{T}(j_{1} in leptonic t) [GeV]'),
+	'NJetsSel':('NJetsSel',linspace(0, 15, 16).tolist(),';AK4 jet multiplicity'),
+	'minDR_lepJet':('minDR_lepJet',linspace(0, 2, 51).tolist(),';min[#DeltaR(l, jets)]'),
+	'ptRel_lepJet':('ptRel_lepJet',linspace(0, 300, 51).tolist(),';p^{rel}_{T}(l, jets) [GeV]'),
+	'deltaR_ljets0':('deltaR_ljets[0]',linspace(0, 5, 51).tolist(),';#DeltaR(l, j_{1})'),
+	'deltaR_ljets1':('deltaR_ljets[1]',linspace(0, 5, 51).tolist(),';#DeltaR(l, j_{2})'),
+	'WlepPt':('WlepPt',linspace(0, 3000, 51).tolist(),';p^{rec}_{T}(W) [GeV]'),
+	'WlepMass':('WlepMass',linspace(75, 90, 51).tolist(),';M^{rec}(W) [GeV]'),
+	'thadPt':('thadPt',linspace(0, 3000, 51).tolist(),';p^{rec}_{T}(hadronic t) [GeV]'),
+	'thadMass':('thadMass',linspace(50, 300, 51).tolist(),';M^{rec}(hadronic t) [GeV]'),
+	'thadChi2':('thadChi2',linspace(0, 100, 51).tolist(),';#chi^{2}(hadronic t)'),
+	'tlepPt':('tlepPt',linspace(0, 3000, 51).tolist(),';p^{rec}_{T}(leptonic t) [GeV]'),
+	'tlepMass':('tlepMass',linspace(50, 300, 51).tolist(),';M^{rec}(leptonic t) [GeV]'),
+	'tlepChi2':('tlepChi2',linspace(0, 100, 51).tolist(),';#chi^{2}(leptonic t)'),
+	'topAK8Pt':('topAK8Pt',linspace(0, 3000, 51).tolist(),';p_{T}(tagged t) [GeV]'),
+	'topAK8Mass':('topAK8Mass',linspace(0, 300, 51).tolist(),';M(tagged t) [GeV]'),
+	'topAK8Tau32':('topAK8Tau32',linspace(0, 1, 51).tolist(),';#tau_{3}/#tau_{2}(tagged t)'),
+	'topAK8SDMass':('topAK8SDMass',linspace(0, 300, 51).tolist(),';M_{S-D}(tagged t) [GeV]'),
+	'Ntoptagged':('Ntoptagged',linspace(0, 3, 4).tolist(),';t tag multiplicity'),
 
-	'DRJ1J2':('deltaR',linspace(0, 5, 51).tolist(),';#DeltaR(j_{1}, j_{2})'),
-	'DEtaJ1J2':('deltaEta',linspace(-5, 5, 101).tolist(),';#Delta#eta(j_{1}, j_{2})'),
-	'DPhiJ1J2':('deltaPhi',linspace(-3.2, 3.2, 51).tolist(),';#Delta#phi(j_{1}, j_{2})'),
-	'DYJ1J2':('deltaY',linspace(0, 2, 51).tolist(),';#DeltaY(j_{1}, j_{2})'),
-	'RSGPt':('RSGPt',linspace(0, 1500, 31).tolist(),';p_{T}(t#bar{t}) [GeV]'),
-	'RSGMass':('RSGMass',linspace(0, 6000, 121).tolist(),';M(t#bar{t}) [GeV]'),
-	
-	'MET'   :('corr_met_singleLepCalc',linspace(0, 1500, 51).tolist(),';#slash{E}_{T} [GeV]'),
-	'PrunedSmeared' :('theJetAK8PrunedMass_JetSubCalc_PtOrdered',linspace(0, 500, 51).tolist(),';AK8 jet pruned mass [GeV]'),
-	'PrunedSmearedNm1' :('theJetAK8PrunedMassWtagUncerts_JetSubCalc_PtOrdered',linspace(0, 500, 51).tolist(),';AK8 jet pruned mass [GeV]'),
-	'SoftDropMass' :('theJetAK8SoftDropMass_JetSubCalc_PtOrdered',linspace(0, 500, 51).tolist(),';AK8 jet soft-drop mass [GeV]'),
-	'SoftDropMassNm1' :('theJetAK8SoftDropMass_JetSubCalc_PtOrdered',linspace(0, 500, 51).tolist(),';AK8 jet soft-drop mass [GeV]'),
-	'Tau1':('theJetAK8NjettinessTau1_JetSubCalc_PtOrdered',linspace(0,1,51).tolist(),';AK8 Jet #tau_{1}'),
-	'Tau2':('theJetAK8NjettinessTau2_JetSubCalc_PtOrdered',linspace(0,1,51).tolist(),';AK8 Jet #tau_{2}'),
-	'JetPhi':('theJetPhi_JetSubCalc_PtOrdered',linspace(-3.2,3.2,65).tolist(),';AK4 Jet #phi'),
-	'JetPhiAK8':('theJetAK8Phi_JetSubCalc_PtOrdered',linspace(-3.2,3.2,65).tolist(),';AK8 Jet #phi'),
-	
+	'zpDeltaR':('zpDeltaR',linspace(0, 5, 51).tolist(),';#DeltaR(t_{1}, t_{2})'),
+	'zpDeltaY':('zpDeltaY',linspace(0, 5, 51).tolist(),';#DeltaY(t_{1}, t_{2})'),
+	'zpPt':('zpPt',linspace(0, 2000, 51).tolist(),';p_{T}(t#bar{t}) [GeV]'),
+	'zpMass':('zpMass',linspace(0, 8000, 161).tolist(),';M_{rec}(t#bar{t}) [GeV]'),
+	'genzpMass':('genzpMass',linspace(0, 8000, 161).tolist(),';M_{gen}(t#bar{t}) [GeV]'),
+		
 	'NJets_vs_NBJets':('NJets_JetSubCalc:NJetsCSV_JetSubCalc',linspace(0, 15, 16).tolist(),';AK4 jet multiplicity',linspace(0, 10, 11).tolist(),';b-tagged jet multiplicity'),
 
 	}
@@ -197,7 +194,7 @@ for cat in catList:
 		outDir = os.getcwd()
 		outDir+='/'+pfix
 		if not os.path.exists(outDir): os.system('mkdir '+outDir)
-		outDir+='/'+cutString
+		#outDir+='/'+cutString
 		if not os.path.exists(outDir): os.system('mkdir '+outDir)
 		outDir+='/'+catDir
 		if not os.path.exists(outDir): os.system('mkdir '+outDir)
@@ -219,7 +216,7 @@ for cat in catList:
 		outDir = os.getcwd()
 		outDir+='/'+pfix
 		if not os.path.exists(outDir): os.system('mkdir '+outDir)
-		outDir+='/'+cutString
+		#outDir+='/'+cutString
 		if not os.path.exists(outDir): os.system('mkdir '+outDir)
 		outDir+='/'+catDir
 		if not os.path.exists(outDir): os.system('mkdir '+outDir)
@@ -248,7 +245,7 @@ for cat in catList:
 		outDir = os.getcwd()
 		outDir+='/'+pfix
 		if not os.path.exists(outDir): os.system('mkdir '+outDir)
-		outDir+='/'+cutString
+		#outDir+='/'+cutString
 		if not os.path.exists(outDir): os.system('mkdir '+outDir)
 		outDir+='/'+catDir
 		if not os.path.exists(outDir): os.system('mkdir '+outDir)

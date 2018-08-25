@@ -28,11 +28,12 @@ start_time = time.time()
 # -- Use "removalKeys" to remove specific systematics from the output file.
 #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-iPlot='RSGMass'
+iPlot='zpMass'
+lumi='3000p0fbinv'
 if len(sys.argv)>1: iPlot=str(sys.argv[1])
 cutString = ''#'lep30_MET150_NJets4_DR1_1jet450_2jet150'
-templateDir = os.getcwd()+'/templates_2018_4_29/'+cutString
-combinefile = 'templates_'+iPlot+'_35p867fb.root'
+templateDir = os.getcwd()+'/templates_zpMass_2018_8_23/'+cutString
+combinefile = 'templates_'+iPlot+'_'+lumi+'.root'
 
 quiet = True #if you don't want to see the warnings that are mostly from the stat. shape algorithm!
 rebinCombine = False #else rebins theta templates
@@ -40,20 +41,20 @@ doStatShapes = False
 normalizeRENORM = True #only for signals
 normalizePDF    = True #only for signals
 #X53X53, TT, BB, HTB, etc --> this is used to identify signal histograms for combine templates when normalizing the pdf and muRF shapes to nominal!!!!
-sigName = 'RSG' #MAKE SURE THIS WORKS FOR YOUR ANALYSIS PROPERLY!!!!!!!!!!!
-massList = range(3000,5000+1,1000)
+sigName = 'Zp' #MAKE SURE THIS WORKS FOR YOUR ANALYSIS PROPERLY!!!!!!!!!!!
+massList = range(2000,6000+1,1000)
 if 'kinematics_PS' in templateDir: massList = [1000,1300]
 sigProcList = [sigName+'M'+str(mass) for mass in massList]
-bkgProcList = ['tt','qcd'] #put the most dominant process first
+bkgProcList = ['tt','sitop','wjets','zjets','qcd'] #put the most dominant process first
 era = "13TeV"
 
-minNbins=4 #min number of bins to be merged
-stat = 0.5 #statistical uncertainty requirement (enter >1.0 for no rebinning; i.g., "1.1")
+minNbins=2 #min number of bins to be merged
+stat = 1.1 #statistical uncertainty requirement (enter >1.0 for no rebinning; i.g., "1.1")
 statThres = 0.05 #statistical uncertainty threshold on total background to assign BB nuisances -- enter 0.0 to assign BB for all bins
 #if len(sys.argv)>1: stat=float(sys.argv[1])
 singleBinCR = False
 symmetrizeTopPtShift = False
-isEMlist = ['LT','GT']
+isEMlist = ['E','M']
 if iPlot=='minMlb': minNbins=3 #min 15GeV bin width
 if iPlot=='HT' or iPlot=='ST': minNbins=8 #min 40GeV bin width
 
@@ -91,19 +92,20 @@ def findfiles(path, filtre):
 rfiles = []         
 for file in findfiles(templateDir, '*.root'):
 	if 'rebinned' in file or combinefile in file or '_'+iPlot+'_' not in file.split('/')[-1]: continue
+	if lumi not in file: continue
 	if not any([signal in file for signal in sigProcList]): continue
 	rfiles.append(file)
 if rebinCombine: rfiles = [templateDir+'/'+combinefile]
 
 tfile = TFile(rfiles[0])
 datahists = [k.GetName() for k in tfile.GetListOfKeys() if '__'+dataName in k.GetName()]
-channels = [hist[hist.find('fb_')+3:hist.find('__')] for hist in datahists if 'isL_' not in hist]
-allhists = {chn:[hist.GetName() for hist in tfile.GetListOfKeys() if chn in hist.GetName()] for chn in channels}
+channels = [hist[hist.find('fbinv_')+6:hist.find('__')] for hist in datahists if 'isL_' not in hist]
+allhists = {chn:[hist.GetName() for hist in tfile.GetListOfKeys() if chn+'__' in hist.GetName()] for chn in channels}
 
 totBkgHists = {}
 dataHists_ = {}
 for hist in datahists:
-	channel = hist[hist.find('fb_')+3:hist.find('__')]
+	channel = hist[hist.find('fbinv_')+6:hist.find('__')]
 	totBkgHists[channel]=tfile.Get(hist.replace('__'+dataName,'__'+bkgProcList[0])).Clone()
 	dataHists_[channel]=tfile.Get(hist).Clone()
 	for proc in bkgProcList:
@@ -405,7 +407,10 @@ if len(njetslist)==0: njetslist=['0p']
 procNames={
            'top':'TOP',
            'tt':'TT',
+           'sitop':'Single top',
            'ewk':'EWK',
+           'wjets':'W+jets',
+           'zjets':'Z+jets',
            'qcd':'QCD',
            'DATA':'Data',
            'data_obs':'Data',
@@ -625,7 +630,7 @@ for proc in bkgProcList+sigProcList:
 		nomHist = histoPrefix+proc
 		try: row.append(' & '+str(round(yieldsErrsAll[nomHist]/(yieldsAll[nomHist]+1e-20),2)))
 		except:
-			print "Missing",proc,"for channel:",chn,"and systematic:",syst
+			print "Missing",proc,"for channel:",chn,"and systematic: stat"
 			pass
 	row.append('\\\\')
 	table.append(row)	
@@ -640,15 +645,15 @@ print "       WRITING SUMMARY TEMPLATES: "
 lumiStr = combinefile.split('_')[-1][:-7]
 for signal in sigProcList:
 	print "              ... "+signal
-	yldRfileName = templateDir+'/templates_'+iPlot+'YLD_'+signal+'_'+lumiStr+'fb_rebinned_stat'+str(stat).replace('.','p')+'.root'
+	yldRfileName = templateDir+'/templates_'+iPlot+'YLD_'+signal+'_'+lumiStr+'fbinv_rebinned_stat'+str(stat).replace('.','p')+'.root'
 	yldRfile = TFile(yldRfileName,'RECREATE')
 	for isEM in isEMlist:		
 		for proc in bkgProcList+[dataName,signal]:
 			yldHists = {}
-			yldHists[isEM+proc]=TH1F(iPlot+'YLD_'+lumiStr+'fb_'+isEM+'_nT0p_nW0p_nB0p_nJ0p__'+proc.replace(signal,'sig').replace('data','DATA'),'',len(channels)/2,0,len(channels)/2)
+			yldHists[isEM+proc]=TH1F(iPlot+'YLD_'+lumiStr+'fbinv_'+isEM+'_nT0p_nW0p_nB0p_nJ0p__'+proc.replace(signal,'sig').replace('data','DATA'),'',len(channels)/2,0,len(channels)/2)
 			systematicList = sorted([hist[hist.find(proc)+len(proc)+2:hist.find(upTag)] for hist in yieldsAll.keys() if channels[0] in hist and '__'+proc+'__' in hist and upTag in hist])
 			for syst in systematicList:
-				for ud in [upTag,downTag]: yldHists[isEM+proc+syst+ud]=TH1F(iPlot+'YLD_'+lumiStr+'fb_'+isEM+'_nT0p_nW0p_nB0p_nJ0p__'+proc.replace(signal,'sig').replace('data','DATA')+'__'+syst+ud,'',len(channels)/2,0,len(channels)/2)
+				for ud in [upTag,downTag]: yldHists[isEM+proc+syst+ud]=TH1F(iPlot+'YLD_'+lumiStr+'fbinv_'+isEM+'_nT0p_nW0p_nB0p_nJ0p__'+proc.replace(signal,'sig').replace('data','DATA')+'__'+syst+ud,'',len(channels)/2,0,len(channels)/2)
 			ibin = 1
 			for chn in channels:
 				if isEM not in chn: continue
