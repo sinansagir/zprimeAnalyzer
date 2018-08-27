@@ -86,7 +86,7 @@ def get_model():
 	try: model.add_lognormal_uncertainty('muRF', math.log(1.10), '*', '*')
 	except: pass
 	for proc in procs:
-		if proc=='tt':
+		if proc=='ttbar':
 			try: model.add_lognormal_uncertainty('xsec_ttbar', math.log(1.03), proc, '*') #B2G-17-017-V9: 20%
 			except: pass
 			try: model.add_lognormal_uncertainty('toppt', math.log(1.06), proc, '*')
@@ -150,7 +150,7 @@ def get_model_2xSyst():
 	try: model.add_lognormal_uncertainty('muRF', math.log(1.20), '*', '*')
 	except: pass
 	for proc in procs:
-		if proc=='tt':
+		if proc=='ttbar':
 			try: model.add_lognormal_uncertainty('xsec_ttbar', math.log(1.06), proc, '*') #B2G-17-017-V9: 20%
 			except: pass
 			try: model.add_lognormal_uncertainty('toppt', math.log(1.12), proc, '*')

@@ -7,12 +7,7 @@ from weights import *
 lumiStr = str(targetlumi/1000).replace('.','p') # 1/fb
 
 def analyze(tTree,process,cutList,doAllSys,iPlot,plotDetails,category):
-# 	print "*****"*20
-# 	print "*****"*20
-# 	print "DISTRIBUTION:", iPlot
-# 	print "            -name in input trees:", plotDetails[0]
-# 	print "            -x-axis label is set to:", plotDetails[2]
-# 	print "            -using the binning as:", plotDetails[1]
+	
 	plotTreeName=plotDetails[0]
 	xbins=array('d', plotDetails[1])
 	xAxisLabel=plotDetails[2]
@@ -45,13 +40,6 @@ def analyze(tTree,process,cutList,doAllSys,iPlot,plotDetails,category):
 	if 'Chi2' not in iPlot: cut += ' && ((thadChi2+tlepChi2)<30)'
 	if iPlot!='zpDeltaR': cut += ' && (zpDeltaR > 1)'
 	if 'topAK8' in iPlot: cut += ' && (Ntoptagged == 1)'
-	#cut += ' && (jetAK8Pt[0] > '+str(cutList['jet1PtCut'])+')'
-	#cut += ' && (jetAK8Pt[1] > '+str(cutList['jet2PtCut'])+')'
-	#cut += ' && (fabs(jetAK8Eta[0]) < 2.4) && (fabs(jetAK8Eta[1]) < 2.4)'
-	#if 'SDM' not in iPlot: 
-	#	cut += ' && (topAK8SDMass > 105) && (topAK8SDMass < 210)'
-	#	#cut += ' && (jetAK8SDMass[1] > 105) && (jetAK8SDMass[1] < 210)'
-	#if 'Tau32' not in iPlot: cut += ' && (topAK8Tau32 < 0.65)'# && (jetAK8Tau3[1]/jetAK8Tau2[1] < 0.65)'
 	
 	if process=='TTmtt0to1000inc' or process=='QCDmjj0to1000inc': 
 		cut += ' && (genTTorJJMass<1000)'
@@ -73,7 +61,6 @@ def analyze(tTree,process,cutList,doAllSys,iPlot,plotDetails,category):
 	if nttag=='0': nbtagString = 'tlepLeadAK4BTag/2'
 	elif nttag=='1': nbtagString = 'topAK8BTag'
 	elif nttag=='0p': nbtagString = '((Ntoptagged==0 && tlepLeadAK4BTag/2) || (Ntoptagged==1 && topAK8BTag))'
-	#nbtagString = '((Jet0SDsubjet0bdisc>'+CSVM+' || Jet0SDsubjet1bdisc>'+CSVM+') + (Jet1SDsubjet0bdisc>'+CSVM+' || Jet1SDsubjet1bdisc>'+CSVM+'))'
 	njetsString = 'NJets_JetSubCalc'
 	nttagCut = ''
 	if 'p' in nttag: nttagCut+=' && '+nttagString+'>='+nttag[:-1]
@@ -106,12 +93,10 @@ def analyze(tTree,process,cutList,doAllSys,iPlot,plotDetails,category):
 	hists = {}
 	if isPlot2D: hists[iPlot+'_'+lumiStr+'fbinv_'+catStr+'_'+process]  = TH2D(iPlot+'_'+lumiStr+'fbinv_'+catStr+'_'+process,yAxisLabel+xAxisLabel,len(ybins)-1,ybins,len(xbins)-1,xbins)
 	else: hists[iPlot+'_'+lumiStr+'fbinv_'+catStr+'_'+process]  = TH1D(iPlot+'_'+lumiStr+'fbinv_'+catStr+'_'+process,xAxisLabel,len(xbins)-1,xbins)
-	#hists[iPlot+'_'+lumiStr+'fbinv_'+catStr+'_'+process]  = TH1D("histoname1","histotitle1",100,0,6000)
 	for key in hists.keys(): hists[key].Sumw2()
 
 	# DRAW histograms
 	tTree[process].Draw(plotTreeName+' >> '+iPlot+'_'+lumiStr+'fbinv_'+catStr+'_' +process, weightStr+'*('+fullcut+')', 'GOFF')
-	#tTree[process].Draw("zpMass >> histoname1","1","GOFF")
 	
 	for key in hists.keys(): hists[key].SetDirectory(0)	
 	return hists

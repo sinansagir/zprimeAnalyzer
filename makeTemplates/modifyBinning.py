@@ -45,7 +45,7 @@ sigName = 'Zp' #MAKE SURE THIS WORKS FOR YOUR ANALYSIS PROPERLY!!!!!!!!!!!
 massList = range(2000,6000+1,1000)
 if 'kinematics_PS' in templateDir: massList = [1000,1300]
 sigProcList = [sigName+'M'+str(mass) for mass in massList]
-bkgProcList = ['tt','sitop','wjets','zjets','qcd'] #put the most dominant process first
+bkgProcList = ['ttbar','sitop','wjets','zjets','qcd'] #put the most dominant process first
 era = "13TeV"
 
 minNbins=2 #min number of bins to be merged
@@ -406,7 +406,7 @@ if len(njetslist)==0: njetslist=['0p']
 
 procNames={
            'top':'TOP',
-           'tt':'TT',
+           'ttbar':'TT',
            'sitop':'Single top',
            'ewk':'EWK',
            'wjets':'W+jets',

@@ -2,11 +2,12 @@ import os,sys,fnmatch
 
 thisDir = os.getcwd()
 templateDir = thisDir+'/../makeTemplates/templates_zpMass_2018_8_23'
-thetaConfigTemp = thisDir+'/theta_config_limits.py'
+templateDirAH = thisDir+'/templates_alljets_2018_8_24'
+thetaConfigTemp = thisDir+'/theta_config_comb_limits.py'
 doLimits = False #else, it will run 3 and 5 sigma reaches
-do2xSyst = True
+do2xSyst = False
 doStatOnly = False
-if not doLimits: thetaConfigTemp = thisDir+'/theta_config_discreach.py'
+if not doLimits: thetaConfigTemp = thisDir+'/theta_config_comb_discreach.py'
 
 toFilter0 = []#['pileup','jec','jer','jms','jmr','tau21','taupt','topsf','toppt','muRFcorrdNew','pdfNew','trigeff','btag','mistag']#,'jsf'
 toFilter0 = ['__'+item+'__' for item in toFilter0]
@@ -23,9 +24,9 @@ limitConfs = {#'<limit type>':[filter list]
 			  'nobtagcats':['M__','E__','_nB'],
 			  }
 
-limitType = ''#'_36fbinv'
-if do2xSyst: limitType = '_2xSyst'
-if doStatOnly: limitType = '_statOnly'
+limitType = '_combination'
+if do2xSyst: limitType += '_2xSyst'
+if doStatOnly: limitType += '_statOnly'
 limordisc = {0:'_disc',1:'_lim'}
 outputDir = '/user_data/ssagir/Zprime_limits_2018/'+templateDir.split('/')[-1]+limitType+limordisc[doLimits]+'/' #prevent writing these (they are large) to brux6 common area
 if not os.path.exists(outputDir): os.system('mkdir '+outputDir)
@@ -54,20 +55,25 @@ thetaVersion = {0:'utils',1:'utils2'}
 def makeThetaConfig(rFile,outDir,toFilter):
 	with open(outDir+'/'+rFile.split('/')[-1].replace('.root','.py'),'w') as fout:
 		for line in thetaConfigLines:
-			if line.startswith('input ='): fout.write('input = \''+rFile+'\'')
-			elif line.startswith('	model = build_model_from_rootfile('): 
+			if line.startswith('inputSL ='): fout.write('inputSL = \''+rFile+'\'\n')
+			elif line.startswith('inputAH ='): fout.write('inputAH = \''+rFile.replace(templateDir,templateDirAH).replace('_rebinned_stat1p1','')+'\'\n')
+			elif line.startswith('	model = build_model_from_rootfile(inputSL'): 
 				if len(toFilter)!=0:
 					statUnc = 'False'
 					if doStatOnly: statUnc = 'True'
-					model='	model = build_model_from_rootfile(input,include_mc_uncertainties='+statUnc+',histogram_filter = (lambda s:  s.count(\''+toFilter[0]+'\')==0'
+					model='	model = build_model_from_rootfile(inputSL,include_mc_uncertainties='+statUnc+',histogram_filter = (lambda s:  s.count(\''+toFilter[0]+'\')==0'
 					for item in toFilter: 
 						if item!=toFilter[0]: model+=' and s.count(\''+item+'\')==0'
 					model+='))'
 					fout.write(model)
 				else: fout.write(line)
-			elif line.startswith('model = get_model'):
-				if do2xSyst: fout.write('model = get_model_2xSyst()\n')
-				elif doStatOnly: fout.write('model = get_model_statOnly()\n')
+			elif line.startswith('model = get_model_ljets'):
+				if do2xSyst: fout.write('model = get_model_ljets_2xSyst()\n')
+				elif doStatOnly: fout.write('model = get_model_ljets_statOnly()\n')
+				else: fout.write(line)
+			elif line.startswith('alljetsModel = get_model_alljets'):
+				if do2xSyst: fout.write('alljetsModel = get_model_alljets_2xSyst()\n')
+				elif doStatOnly: fout.write('alljetsModel = get_model_alljets_statOnly()\n')
 				else: fout.write(line)
 			else: fout.write(line)
 	with open(outDir+'/'+rFile.split('/')[-1].replace('.root','.sh'),'w') as fout:

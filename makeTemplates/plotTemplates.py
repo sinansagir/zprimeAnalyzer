@@ -40,7 +40,7 @@ tempsig='templates_'+iPlot+'_'+sigs[0]+'_'+lumiInTemplates+'fbinv'+isRebinned+'.
 
 bkgProcList = ['tt','sitop','wjets','zjets','qcd']
 bkgHistColors = {'tt':rt.kRed-9,'sitop':rt.kRed-5,'ewk':rt.kBlue-7,'wjets':rt.kBlue-7,'zjets':rt.kBlue-1,'qcd':rt.kOrange-5,'VV':rt.kBlue+5}
-proclegs = {'tt':'t#bar{t}','sitop':'Single top','ewk':'EW','wjets':'W+jets','zjets':'Z+jets','qcd':'QCD','vv':'VV','data':'Data'}
+proclegs = {'ttbar':'t#bar{t}','sitop':'Single top','ewk':'EW','wjets':'W+jets','zjets':'Z+jets','qcd':'QCD','vv':'VV','data':'Data'}
 
 systematicList = ['pileup','jec','jer','jms','jmr','tau21','taupt','topsf','trigeff','ht',
 				  'btag','mistag','pdfNew','muRFcorrdNew','toppt']
@@ -805,8 +805,8 @@ for tag in tagList:
 	bkgHTgerrmerged.SetFillColor(rt.kBlack)
 	bkgHTgerrmerged.SetLineColor(rt.kBlack)
 
-	#bkghistsmerged['ttisL'+tagStr].Fit("gaus","","",150.,200.)
-	#bkghistsmerged['ttisL'+tagStr+'Fit'] = bkghistsmerged['ttisL'+tagStr].GetFunction("gaus").Clone('ttisL'+tagStr+'Fit')
+	#bkghistsmerged['ttbarisL'+tagStr].Fit("gaus","","",150.,200.)
+	#bkghistsmerged['ttbarisL'+tagStr+'Fit'] = bkghistsmerged['ttbarisL'+tagStr].GetFunction("gaus").Clone('ttbarisL'+tagStr+'Fit')
 
 	c1merged = rt.TCanvas("c1merged","c1merged",50,50,W,H)
 	c1merged.SetFillColor(0)
@@ -889,7 +889,7 @@ for tag in tagList:
 		if drawYields: hDatamerged.Draw("SAME TEXT00") 
 	uPad.RedrawAxis()
 	bkgHTgerrmerged.Draw("SAME E2")
-	#bkghistsmerged['ttisL'+tagStr+'Fit'].Draw("SAME HIST")
+	#bkghistsmerged['ttbarisL'+tagStr+'Fit'].Draw("SAME HIST")
 	
 	chLatexmerged = rt.TLatex()
 	chLatexmerged.SetNDC()
