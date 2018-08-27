@@ -14,7 +14,7 @@ gROOT.SetBatch(1)
 start_time = time.time()
 
 lumiStr = str(targetlumi/1000).replace('.','p') # 1/fb
-step1Dir = '/user_data/ssagir/CMSSW_7_4_7/src/zprimeAnalyzer/singleLep/inputFiles_18_8_17'
+step1Dir = '/user_data/ssagir/CMSSW_7_4_7/src/zprimeAnalyzer/singLep/inputFiles_18_8_17'
 
 """
 Note: 
