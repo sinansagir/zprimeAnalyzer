@@ -18,7 +18,7 @@ isCategorized=1
 cutString=''#'DY1.0_1jet400_2jet400'
 if region=='SR': pfix='templates_zpMass_'
 if not isCategorized: pfix='kinematics_'+region+'_'
-pfix+='2018_8_23'
+pfix+='2018_8_27'
 outDir = os.getcwd()+'/'+pfix+'/'+cutString
 
 scaleSignalXsecTo1pb = True # this has to be "True" if you are making templates for limit calculation!!!!!!!!
@@ -32,7 +32,7 @@ normalizeRENORM_PDF = False #normalize the renormalization/pdf uncertainties to 
 rebinBy = 2 #performs a regular rebinning with "Rebin(rebinBy)", put -1 if rebinning is not desired
 
 doTTinc = False
-bkgGrupList = ['ttbar','sitop','wjets','zjets','qcd']
+bkgGrupList = ['ttbar','sitop','wjets','zjets','dibos','qcd']
 bkgProcList = []#'tt','qcd']
 bkgProcs = {}
 bkgProcs['ttbar'] = ['TTmtt1000toInf','TTmtt0to1000inc','TTmtt1000toInfinc']
@@ -40,7 +40,7 @@ if doTTinc: bkgProcs['ttbar'] = ['TTinc']
 bkgProcs['sitop'] = ['STs','STt','STbt','STtW','STbtW']
 bkgProcs['wjets'] = ['WJetsInc']
 bkgProcs['zjets'] = ['DyHT70to100','DyHT100to200','DyHT200to400','DyHT400to600','DyHT600to800','DyHT800to1200','DyHT1200to2500','DyHT2500toInf']
-bkgProcs['ww'] = ['WW']
+bkgProcs['dibos'] = ['WW']
 #bkgProcs['qcd'] = ['QCDPt15to7000']
 #bkgProcs['qcd'] = ['QCDflatPt15to7000']
 bkgProcs['qcd'] = ['QCDPt50to80','QCDPt80to120','QCDPt120to170','QCDPt170to300','QCDPt300to470','QCDPt470to600','QCDPt600to800','QCDPt800to1000','QCDPt1000toInf']

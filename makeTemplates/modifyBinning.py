@@ -32,7 +32,7 @@ iPlot='zpMass'
 lumi='3000p0fbinv'
 if len(sys.argv)>1: iPlot=str(sys.argv[1])
 cutString = ''#'lep30_MET150_NJets4_DR1_1jet450_2jet150'
-templateDir = os.getcwd()+'/templates_zpMass_2018_8_23/'+cutString
+templateDir = os.getcwd()+'/templates_zpMass_2018_8_27/'+cutString
 combinefile = 'templates_'+iPlot+'_'+lumi+'.root'
 
 quiet = True #if you don't want to see the warnings that are mostly from the stat. shape algorithm!
@@ -45,7 +45,7 @@ sigName = 'Zp' #MAKE SURE THIS WORKS FOR YOUR ANALYSIS PROPERLY!!!!!!!!!!!
 massList = range(2000,6000+1,1000)
 if 'kinematics_PS' in templateDir: massList = [1000,1300]
 sigProcList = [sigName+'M'+str(mass) for mass in massList]
-bkgProcList = ['ttbar','sitop','wjets','zjets','qcd'] #put the most dominant process first
+bkgProcList = ['ttbar','sitop','wjets','zjets','dibos','qcd'] #put the most dominant process first
 era = "13TeV"
 
 minNbins=2 #min number of bins to be merged
@@ -411,6 +411,7 @@ procNames={
            'ewk':'EWK',
            'wjets':'W+jets',
            'zjets':'Z+jets',
+           'dibos':'WW',
            'qcd':'QCD',
            'DATA':'Data',
            'data_obs':'Data',

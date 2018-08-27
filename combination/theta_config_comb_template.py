@@ -1,8 +1,9 @@
 #!/usr/bin/python
 
-input = 'dummy.root'
+inputSL = 'dummy.root'
+inputAH = 'dummy.root'
 
-rFileName = input.split('/')[-1].replace('.root','')
+rFileName = inputSL.split('/')[-1].replace('.root','')
 
 def getNSigmaCrossSecMin(model, N=5, errorMax=0.001):
 	outFile=open(rFileName+'_'+str(N)+'sigmaSignif.txt','w')
@@ -53,8 +54,8 @@ def getNSigmaCrossSecMin(model, N=5, errorMax=0.001):
 		
 ##################################################################################################################
 
-def get_model():
-	model = build_model_from_rootfile(input,include_mc_uncertainties=False)#,histogram_filter = (lambda s: s.count('jec')==0 and s.count('jer')==0)
+def get_model_ljets():
+	model = build_model_from_rootfile(inputSL,include_mc_uncertainties=False)#,histogram_filter = (lambda s: s.count('jec')==0 and s.count('jer')==0)
 	
 	model.fill_histogram_zerobins()
 	model.set_signal_processes('sig')
@@ -100,7 +101,7 @@ def get_model():
 		elif proc=='zjets':
 			try: model.add_lognormal_uncertainty('xsec_zjets', math.log(1.06), proc, '*') #B2G-17-017-V9: 50%, scaled by lumi
 			except: pass
-		elif proc=='vv':
+		elif proc=='dibos':
 			try: model.add_lognormal_uncertainty('xsec_dibos', math.log(1.06), proc, '*') #B2G-17-017-V9: 50%, scaled by lumi
 			except: pass
 		elif proc=='qcd':
@@ -109,16 +110,16 @@ def get_model():
 			
 	return model
 
-def get_model_statOnly():
-	model = build_model_from_rootfile(input,include_mc_uncertainties=True)#,histogram_filter = (lambda s: s.count('jec')==0 and s.count('jer')==0)
+def get_model_ljets_statOnly():
+	model = build_model_from_rootfile(inputSL,include_mc_uncertainties=True)#,histogram_filter = (lambda s: s.count('jec')==0 and s.count('jer')==0)
 	
 	model.fill_histogram_zerobins()
 	model.set_signal_processes('sig')
 			
 	return model
 
-def get_model_2xSyst():
-	model = build_model_from_rootfile(input,include_mc_uncertainties=False)#,histogram_filter = (lambda s: s.count('jec')==0 and s.count('jer')==0)
+def get_model_ljets_2xSyst():
+	model = build_model_from_rootfile(inputSL,include_mc_uncertainties=False)#,histogram_filter = (lambda s: s.count('jec')==0 and s.count('jer')==0)
 	
 	model.fill_histogram_zerobins()
 	model.set_signal_processes('sig')
@@ -164,7 +165,7 @@ def get_model_2xSyst():
 		elif proc=='zjets':
 			try: model.add_lognormal_uncertainty('xsec_zjets', math.log(1.12), proc, '*') #B2G-17-017-V9: 50%, scaled by lumi
 			except: pass
-		elif proc=='vv':
+		elif proc=='dibos':
 			try: model.add_lognormal_uncertainty('xsec_dibos', math.log(1.12), proc, '*') #B2G-17-017-V9: 50%, scaled by lumi
 			except: pass
 		elif proc=='qcd':
@@ -172,21 +173,110 @@ def get_model_2xSyst():
 			except: pass
 			
 	return model
-		
-model = get_model()
+
+def get_model_alljets():
+	model = build_model_from_rootfile(inputAH,include_mc_uncertainties=False)#,histogram_filter = (lambda s: s.count('jec')==0 and s.count('jer')==0)
+	
+	model.fill_histogram_zerobins()
+	model.set_signal_processes('sig')
+	
+	procs = model.processes
+	
+	for proc in procs:
+		if proc!='qcd':
+			try: model.add_lognormal_uncertainty('lumi', math.log(1.01), proc, '*')
+			except: pass
+			try: model.add_lognormal_uncertainty('pileup', math.log(1.03), proc, '*')
+			except: pass
+			try: model.add_lognormal_uncertainty('jec', math.log(1.035), proc, '*')
+			except: pass
+			try: model.add_lognormal_uncertainty('jer', math.log(1.03), proc, '*')
+			except: pass
+			try: model.add_lognormal_uncertainty('btag', math.log(1.10), proc, '*')
+			except: pass
+			try: model.add_lognormal_uncertainty('ttag', math.log(1.10), proc, '*')
+			except: pass
+			try: model.add_lognormal_uncertainty('pdf', math.log(1.024), proc, '*')
+			except: pass
+			try: model.add_lognormal_uncertainty('muRF', math.log(1.10), proc, '*')
+			except: pass
+		if proc=='ttbar':
+			try: model.add_lognormal_uncertainty('xsec_ttbar', math.log(1.03), proc, '*')
+			except: pass
+			try: model.add_lognormal_uncertainty('toppt', math.log(1.06), proc, '*')
+			except: pass
+		if proc=='qcd':
+			try: model.add_lognormal_uncertainty('modmass', math.log(1.02), proc, '*')
+			except: pass
+			try: model.add_lognormal_uncertainty('closure', math.log(1.05), proc, '*')
+			except: pass
+			
+	return model	
+
+def get_model_alljets_statOnly():
+	model = build_model_from_rootfile(inputAH,include_mc_uncertainties=True)#,histogram_filter = (lambda s: s.count('jec')==0 and s.count('jer')==0)
+	
+	model.fill_histogram_zerobins()
+	model.set_signal_processes('sig')
+			
+	return model
+
+def get_model_alljets_2xSyst():
+	model = build_model_from_rootfile(inputAH,include_mc_uncertainties=False)#,histogram_filter = (lambda s: s.count('jec')==0 and s.count('jer')==0)
+	
+	model.fill_histogram_zerobins()
+	model.set_signal_processes('sig')
+	
+	procs = model.processes
+	
+	for proc in procs:
+		if proc!='qcd':
+			try: model.add_lognormal_uncertainty('lumi', math.log(1.02), proc, '*')
+			except: pass
+			try: model.add_lognormal_uncertainty('pileup', math.log(1.06), proc, '*')
+			except: pass
+			try: model.add_lognormal_uncertainty('jec', math.log(1.07), proc, '*')
+			except: pass
+			try: model.add_lognormal_uncertainty('jer', math.log(1.06), proc, '*')
+			except: pass
+			try: model.add_lognormal_uncertainty('btag', math.log(1.20), proc, '*')
+			except: pass
+			try: model.add_lognormal_uncertainty('ttag', math.log(1.20), proc, '*')
+			except: pass
+			try: model.add_lognormal_uncertainty('pdf', math.log(1.048), proc, '*')
+			except: pass
+			try: model.add_lognormal_uncertainty('muRF', math.log(1.20), proc, '*')
+			except: pass
+		if proc=='ttbar':
+			try: model.add_lognormal_uncertainty('xsec_ttbar', math.log(1.06), proc, '*')
+			except: pass
+			try: model.add_lognormal_uncertainty('toppt', math.log(1.12), proc, '*')
+			except: pass
+		if proc=='qcd':
+			try: model.add_lognormal_uncertainty('modmass', math.log(1.04), proc, '*')
+			except: pass
+			try: model.add_lognormal_uncertainty('closure', math.log(1.10), proc, '*')
+			except: pass
+			
+	return model	
+
+model = get_model_ljets()
+alljetsModel = get_model_alljets()
+model.combine(alljetsModel)
 
 ##################################################################################################################
 
 model_summary(model)
 
-#plot_exp, plot_obs = bayesian_limits(model,'all', n_toy = 100000, n_data = 1000)
-plot_exp, plot_obs = bayesian_limits(model,'expected', n_toy = 5000, n_data = 500)
-plot_exp.write_txt('limits_'+rFileName+'_expected.txt')
-#plot_obs.write_txt('limits_'+rFileName+'_observed.txt')
-
-#N sigma discovery reaches (NOTE that this implementation currently works only with utils/theta-auto.py, check if this is OK or if it can be implemented in utils2 easily!!!)
-# getNSigmaCrossSecMin(model,5,0.01)
-# getNSigmaCrossSecMin(model,3,0.01)
+doLimits = True
+if doLimits:
+	#plot_exp, plot_obs = bayesian_limits(model,'all', n_toy = 100000, n_data = 1000)
+	plot_exp, plot_obs = bayesian_limits(model,'expected', n_toy = 5000, n_data = 500)
+	plot_exp.write_txt('limits_'+rFileName+'_expected.txt')
+	#plot_obs.write_txt('limits_'+rFileName+'_observed.txt')
+else: #N sigma discovery reaches (NOTE that this implementation currently works only with utils/theta-auto.py, check if this is OK or if it can be implemented in utils2 easily!!!)
+	getNSigmaCrossSecMin(model,5,0.01)
+	getNSigmaCrossSecMin(model,3,0.01)
 
 #report.write_html('htmlout_'+rFileName)
 

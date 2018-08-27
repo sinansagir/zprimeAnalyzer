@@ -1,12 +1,11 @@
 import os,sys,fnmatch
 
 thisDir = os.getcwd()
-templateDir = thisDir+'/../makeTemplates/templates_zpMass_2018_8_23'
-thetaConfigTemp = thisDir+'/theta_config_limits.py'
-doLimits = False #else, it will run 3 and 5 sigma reaches
-do2xSyst = True
+templateDir = thisDir+'/../makeTemplates/templates_zpMass_2018_8_27'
+thetaConfigTemp = thisDir+'/theta_config_template.py'
+doLimits = True #else, it will run 3 and 5 sigma reaches
+do2xSyst = False
 doStatOnly = False
-if not doLimits: thetaConfigTemp = thisDir+'/theta_config_discreach.py'
 
 toFilter0 = []#['pileup','jec','jer','jms','jmr','tau21','taupt','topsf','toppt','muRFcorrdNew','pdfNew','trigeff','btag','mistag']#,'jsf'
 toFilter0 = ['__'+item+'__' for item in toFilter0]
@@ -69,6 +68,9 @@ def makeThetaConfig(rFile,outDir,toFilter):
 				if do2xSyst: fout.write('model = get_model_2xSyst()\n')
 				elif doStatOnly: fout.write('model = get_model_statOnly()\n')
 				else: fout.write(line)
+			elif line.startswith('doLimits = '):
+				if doLimits: fout.write('doLimits = True\n')
+				else: fout.write('doLimits = False\n')
 			else: fout.write(line)
 	with open(outDir+'/'+rFile.split('/')[-1].replace('.root','.sh'),'w') as fout:
 		fout.write('#!/bin/sh \n')

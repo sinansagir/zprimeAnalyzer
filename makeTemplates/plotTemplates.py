@@ -23,7 +23,7 @@ if region=='SR': pfix='templates_zpMass_'
 elif region=='WJCR': pfix='wjets_'
 elif region=='TTCR': pfix='ttbar_'
 if not isCategorized: pfix='kinematics_'+region+'_'
-templateDir=os.getcwd()+'/'+pfix+'test_2018_8_23/'+cutString+'/'
+templateDir=os.getcwd()+'/'+pfix+'2018_8_27/'+cutString+'/'
 
 isRebinned=''#'_rebinned_stat1p1' #post for ROOT file names
 saveKey = ''# tag for plot names
@@ -38,9 +38,9 @@ scaleSignals = True
 sigScaleFact = -1 #put -1 if auto-scaling wanted
 tempsig='templates_'+iPlot+'_'+sigs[0]+'_'+lumiInTemplates+'fbinv'+isRebinned+'.root'
 
-bkgProcList = ['tt','sitop','wjets','zjets','qcd']
-bkgHistColors = {'tt':rt.kRed-9,'sitop':rt.kRed-5,'ewk':rt.kBlue-7,'wjets':rt.kBlue-7,'zjets':rt.kBlue-1,'qcd':rt.kOrange-5,'VV':rt.kBlue+5}
-proclegs = {'ttbar':'t#bar{t}','sitop':'Single top','ewk':'EW','wjets':'W+jets','zjets':'Z+jets','qcd':'QCD','vv':'VV','data':'Data'}
+bkgProcList = ['ttbar','sitop','wjets','zjets','dibos','qcd']
+bkgHistColors = {'ttbar':rt.kRed-9,'sitop':rt.kRed-5,'wjets':rt.kBlue-7,'zjets':rt.kBlue-3,'dibos':rt.kBlue,'qcd':rt.kOrange-5,'ewk':rt.kBlue-7}
+proclegs = {'ttbar':'t#bar{t}','sitop':'Single top','wjets':'W+jets','zjets':'Z+jets','dibos':'WW','qcd':'QCD','data':'Data','ewk':'EW'}
 
 systematicList = ['pileup','jec','jer','jms','jmr','tau21','taupt','topsf','trigeff','ht',
 				  'btag','mistag','pdfNew','muRFcorrdNew','toppt']
