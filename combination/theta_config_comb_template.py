@@ -280,3 +280,74 @@ else: #N sigma discovery reaches (NOTE that this implementation currently works 
 
 #report.write_html('htmlout_'+rFileName)
 
+doPostfit=False
+if doLimits and doPostfit:
+	options = Options()
+	options.set('minimizer', 'strategy', 'robust')
+	options.set('minimizer', 'minuit_tolerance_factor', '100000')
+	parVals = mle(model, input='toys:0.0', n=1, with_error=True, with_covariance=True, options = options)
+
+	parameter_values = {}
+	for syst in parVals['sig'].keys():
+		if syst=='__nll' or syst=='__cov': continue
+		else:
+			print syst,"=",parVals['sig'][syst][0][0],"+/-",parVals['sig'][syst][0][1]
+			parameter_values[syst] = parVals['sig'][syst][0][0]
+
+	pickle.dump(parVals,open(rFileName+'.p','wb'))
+
+	histos = evaluate_prediction(model, parameter_values, include_signal=False)
+	write_histograms_to_rootfile(histos, 'histos-mle_'+rFileName+'.root')
+
+	from numpy import linalg
+	import numpy as np
+
+	theta_res = parVals['sig']
+	param_list = []
+	for k, res in theta_res.iteritems():
+		#print k,',',res
+		if any(k == i for i in ['__nll','__cov']): continue
+		err_sq = res[0][1]*res[0][1]
+		param_list.append((k, err_sq))
+
+	cov_matrix = theta_res['__cov'][0]
+	ind_dict = {}
+	for i in xrange(cov_matrix.shape[0]):
+		for ii in xrange(cov_matrix.shape[1]):
+			entry = cov_matrix[i,ii]
+			for proc, val in param_list:
+				if abs(val-entry) < 1e-6:
+					if i != ii:
+						print "WARNING row and column index don't match"
+					ind_dict[i] = proc
+				if i not in ind_dict.keys():
+					ind_dict[i] = 'beta_signal'
+
+	cov_matrix = np.matrix(cov_matrix)
+	diag_matrix = np.matrix(np.sqrt(np.diag(np.diag(cov_matrix))))
+
+	inv_matrix = diag_matrix.I
+	corr_matrix = inv_matrix * cov_matrix * inv_matrix
+
+	corr_hist = ROOT.TH2D("correlation_matrix","",len(param_list),0,len(param_list),len(param_list),0,len(param_list))
+	cov_hist = ROOT.TH2D("covariance_matrix","",len(param_list),0,len(param_list),len(param_list),0,len(param_list))
+	
+	for i in xrange(corr_matrix.shape[0]):
+		if i not in ind_dict.keys(): continue
+		corr_hist.GetXaxis().SetBinLabel(i+1, ind_dict.get(i,'unknown'))
+		corr_hist.GetYaxis().SetBinLabel(i+1, ind_dict.get(i,'unknown'))
+		cov_hist.GetXaxis().SetBinLabel(i+1, ind_dict.get(i,'unknown'))
+		cov_hist.GetYaxis().SetBinLabel(i+1, ind_dict.get(i,'unknown'))
+		corr_hist.SetLabelSize(0.03,'x')
+		cov_hist.SetLabelSize(0.03,'x')
+		corr_hist.GetZaxis().SetRangeUser(-1,1)
+		for ii in xrange(corr_matrix.shape[1]):
+			entry_corr = corr_matrix[i,ii]
+			entry_cov = cov_matrix[i,ii]
+			corr_hist.Fill(i,ii,entry_corr)
+			cov_hist.Fill(i,ii,entry_cov)
+
+	matrices = ROOT.TFile('mle_covcorr_'+rFileName+'.root','RECREATE')
+	cov_hist.Write()
+	corr_hist.Write()
+	matrices.Close()

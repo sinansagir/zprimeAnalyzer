@@ -1,10 +1,10 @@
 import os,sys,fnmatch
 
 thisDir = os.getcwd()
-templateDir = thisDir+'/../makeTemplates/templates_zpMass_2018_8_23'
+templateDir = thisDir+'/templates_zpMass_2018_8_29'
 templateDirAH = thisDir+'/templates_alljets_2018_8_24'
 thetaConfigTemp = thisDir+'/theta_config_comb_template.py'
-doLimits = False #else, it will run 3 and 5 sigma reaches
+doLimits = True #else, it will run 3 and 5 sigma reaches
 do2xSyst = False
 doStatOnly = False
 

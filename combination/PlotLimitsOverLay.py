@@ -1,9 +1,8 @@
 #!/usr/bin/python
 
 import ROOT as rt
-from array import array
 import os,sys,math
-from math import *
+from array import array
 parent = os.path.dirname(os.getcwd())
 sys.path.append(parent)
 import CMS_lumi, tdrstyle
@@ -23,33 +22,107 @@ mass_str = ['2000','3000','4000','5000','6000']
 theory_xsec = [1.3*1.153,1.3*1.556*0.1,1.3*3.585*0.01,1.3*1.174*0.01,1.3*4.939*0.001]
 theory_xsec_13tev = [1.3*0.9528,1.3*0.1289,1.3*0.02807,1.3*0.009095]
 
-limFiles   = [ #compare different optimized selections and discriminants
+limFiles   = [ #compare different limit configurations
+#               '/user_data/ssagir/Zprime_limits_2018/templates_zpMass_2018_8_23_lim/btagcats/limits_templates_'+discriminant+'_'+signal+'M2000'+'_3000p0fbinv'+binning+'_expected.txt',
               '/user_data/ssagir/Zprime_limits_2018/templates_zpMass_2018_8_23_combination_lim/btagcats/limits_templates_'+discriminant+'_'+signal+'M2000'+'_3000p0fbinv'+binning+'_expected.txt',
               '/user_data/ssagir/Zprime_limits_2018/templates_zpMass_2018_8_23_combination_lim/btagcats/limits_templates_'+discriminant+'_'+signal+'M2000'+'_1000p0fbinv'+binning+'_expected.txt',
               '/user_data/ssagir/Zprime_limits_2018/templates_zpMass_2018_8_23_combination_lim/btagcats/limits_templates_'+discriminant+'_'+signal+'M2000'+'_300p0fbinv'+binning+'_expected.txt',
+#               '/user_data/ssagir/Zprime_limits_2018/templates_zpMass_alljets_lim/limits_templates_'+discriminant+'_'+signal+'M2000'+'_36p0fbinv'+binning+'_expected.txt',
+#               '/user_data/ssagir/Zprime_limits_2018/templates_zpMass_2018_8_23_lim/btagcats/limits_templates_'+discriminant+'_'+signal+'M2000'+'_36p0fbinv'+binning+'_expected.txt',
               '/user_data/ssagir/Zprime_limits_2018/templates_zpMass_2018_8_23_combination_lim/btagcats/limits_templates_'+discriminant+'_'+signal+'M2000'+'_36p0fbinv'+binning+'_expected.txt',
               '/user_data/ssagir/Zprime_limits_2018/templates_zpMass_2018_8_23_combination_2xSyst_lim/btagcats/limits_templates_'+discriminant+'_'+signal+'M2000'+'_36p0fbinv'+binning+'_expected.txt',
               '/user_data/ssagir/Zprime_limits_2018/templates_zpMass_2018_8_23_combination_statOnly_lim/btagcats/limits_templates_'+discriminant+'_'+signal+'M2000'+'_36p0fbinv'+binning+'_expected.txt',
-              '/user_data/ssagir/Zprime_limits_2018/templates_zpMass_B2G17017alljets_lim/limits_templates_'+discriminant+'_'+signal+'M2000'+'_36p0fbinv'+binning+'_expected.txt',
-              '/user_data/ssagir/Zprime_limits_2018/templates_zpMass_B2G17017ljets_lim/limits_templates_'+discriminant+'_'+signal+'M2000'+'_36p0fbinv'+binning+'_expected.txt',
+#               '/user_data/ssagir/Zprime_limits_2018/templates_zpMass_B2G17017alljets_lim/limits_templates_'+discriminant+'_'+signal+'M2000'+'_36p0fbinv'+binning+'_expected.txt',
+#               '/user_data/ssagir/Zprime_limits_2018/templates_zpMass_B2G17017ljets_lim/limits_templates_'+discriminant+'_'+signal+'M2000'+'_36p0fbinv'+binning+'_expected.txt',
               '/user_data/ssagir/Zprime_limits_2018/templates_zpMass_B2G17017all_lim/limits_templates_'+discriminant+'_'+signal+'M2000'+'_36p0fbinv'+binning+'_expected.txt',
 			  ]
 
 limLegs    = [
+#               '3000 fb^{-1} (14 TeV) -- 1l',
               '3000 fb^{-1} (14 TeV)',
               '1000 fb^{-1} (14 TeV)',
               '300 fb^{-1} (14 TeV)',
-              '36 fb^{-1} (14 TeV)',
+#               '36 fb^{-1} (14 TeV) -- 0l',
+#               '36 fb^{-1} (14 TeV) -- 1l',
+              '36 fb^{-1} (14 TeV)',# -- 0l+1l',
               '36 fb^{-1} (14 TeV) -- #times2 systematics',
               '36 fb^{-1} (14 TeV) -- stat. only',
-              '36 fb^{-1} (13 TeV) -- B2G-17-17 0l',
-              '36 fb^{-1} (13 TeV) -- B2G-17-17 1l',
+#               '36 fb^{-1} (13 TeV) -- B2G-17-17 0l',
+#               '36 fb^{-1} (13 TeV) -- B2G-17-17 1l',
               '36 fb^{-1} (13 TeV) -- B2G-17-17 0l+1l+2l',
 #               '2#times systematics',
 #               'statistical uncertainty only',
 #               'B2G-17-17 l+jets',
 			  ]
 
+limFiles   = [ #compare different limit configurations
+              '/user_data/ssagir/Zprime_limits_2018/templates_alljets_2018_8_24_lim/all/limits_templates_'+discriminant+'_'+signal+'M2000'+'_36p0fbinv_expected.txt',
+              '/user_data/ssagir/Zprime_limits_2018/templates_zpMass_2018_8_23_lim/btagcats/limits_templates_'+discriminant+'_'+signal+'M2000'+'_36p0fbinv'+binning+'_expected.txt',
+              '/user_data/ssagir/Zprime_limits_2018/templates_zpMass_2018_8_23_combination_lim/btagcats/limits_templates_'+discriminant+'_'+signal+'M2000'+'_36p0fbinv'+binning+'_expected.txt',
+              '/user_data/ssagir/Zprime_limits_2018/templates_zpMass_2018_8_23_combination_2xSyst_lim/btagcats/limits_templates_'+discriminant+'_'+signal+'M2000'+'_36p0fbinv'+binning+'_expected.txt',
+              '/user_data/ssagir/Zprime_limits_2018/templates_zpMass_2018_8_23_combination_statOnly_lim/btagcats/limits_templates_'+discriminant+'_'+signal+'M2000'+'_36p0fbinv'+binning+'_expected.txt',
+              '/user_data/ssagir/Zprime_limits_2018/templates_zpMass_2018_8_23_combination_lim/btagcats/limits_templates_'+discriminant+'_'+signal+'M2000'+'_1000p0fbinv'+binning+'_expected.txt',
+              '/user_data/ssagir/Zprime_limits_2018/templates_zpMass_2018_8_23_combination_lim/btagcats/limits_templates_'+discriminant+'_'+signal+'M2000'+'_300p0fbinv'+binning+'_expected.txt',
+			  ]
+
+limLegs    = [
+              '3000 fb^{-1} -- 0l',
+              '3000 fb^{-1} -- 1l',
+              '3000 fb^{-1} -- 0l+1l',
+              '3000 fb^{-1} -- 0l+1l -- #times2 systematics',
+              '3000 fb^{-1} -- 0l+1l -- only stat. unc.',
+              '1000 fb^{-1} -- 0l+1l',
+              '300 fb^{-1}   -- 0l+1l',
+			  ]
+
+limFiles   = [ #compare different limit configurations
+              '/user_data/ssagir/Zprime_limits_2018/templates_zpMass_2018_8_29_combination_lim/btagcats/limits_templates_'+discriminant+'_'+signal+'M2000'+'_3000p0fbinv'+binning+'_expected.txt',
+              '/user_data/ssagir/Zprime_limits_2018/templates_zpMass_2018_8_29_combination_2xSyst_lim/btagcats/limits_templates_'+discriminant+'_'+signal+'M2000'+'_3000p0fbinv'+binning+'_expected.txt',
+              '/user_data/ssagir/Zprime_limits_2018/templates_zpMass_2018_8_29_combination_statOnly_lim/btagcats/limits_templates_'+discriminant+'_'+signal+'M2000'+'_3000p0fbinv'+binning+'_expected.txt',
+              '/user_data/ssagir/Zprime_limits_2018/templates_zpMass_2018_8_29_combination_lim/btagcats/limits_templates_'+discriminant+'_'+signal+'M2000'+'_1000p0fbinv'+binning+'_expected.txt',
+              '/user_data/ssagir/Zprime_limits_2018/templates_zpMass_2018_8_29_combination_2xSyst_lim/btagcats/limits_templates_'+discriminant+'_'+signal+'M2000'+'_1000p0fbinv'+binning+'_expected.txt',
+              '/user_data/ssagir/Zprime_limits_2018/templates_zpMass_2018_8_29_combination_statOnly_lim/btagcats/limits_templates_'+discriminant+'_'+signal+'M2000'+'_1000p0fbinv'+binning+'_expected.txt',
+              '/user_data/ssagir/Zprime_limits_2018/templates_zpMass_2018_8_29_combination_lim/btagcats/limits_templates_'+discriminant+'_'+signal+'M2000'+'_300p0fbinv'+binning+'_expected.txt',
+              '/user_data/ssagir/Zprime_limits_2018/templates_zpMass_2018_8_29_combination_2xSyst_lim/btagcats/limits_templates_'+discriminant+'_'+signal+'M2000'+'_300p0fbinv'+binning+'_expected.txt',
+              '/user_data/ssagir/Zprime_limits_2018/templates_zpMass_2018_8_29_combination_statOnly_lim/btagcats/limits_templates_'+discriminant+'_'+signal+'M2000'+'_300p0fbinv'+binning+'_expected.txt',
+			  ]
+
+limLegs    = [
+              '3000 fb^{-1} -- 0l+1l',
+              '3000 fb^{-1} -- 0l+1l -- #times2 systematics',
+              '3000 fb^{-1} -- 0l+1l -- only stat. unc.',
+              '1000 fb^{-1} -- 0l+1l',
+              '1000 fb^{-1} -- 0l+1l -- #times2 systematics',
+              '1000 fb^{-1} -- 0l+1l -- only stat. unc.',
+              '300 fb^{-1} -- 0l+1l',
+              '300 fb^{-1} -- 0l+1l -- #times2 systematics',
+              '300 fb^{-1} -- 0l+1l -- only stat. unc.',
+			  ]
+
+# limFiles   = [ #compare different optimized selections and discriminants
+#               '/user_data/ssagir/Zprime_limits_2018/templates_alljets_2018_8_24_lim/all/limits_templates_'+discriminant+'_'+signal+'M2000'+'_3000p0fbinv_expected.txt',
+#               '/user_data/ssagir/Zprime_limits_2018/templates_zpMass_2018_8_29_lim/btagcats/limits_templates_'+discriminant+'_'+signal+'M2000'+'_3000p0fbinv'+binning+'_expected.txt',
+#               '/user_data/ssagir/Zprime_limits_2018/templates_zpMass_2018_8_29_combination_lim/btagcats/limits_templates_'+discriminant+'_'+signal+'M2000'+'_3000p0fbinv'+binning+'_expected.txt',
+#               '/user_data/ssagir/Zprime_limits_2018/templates_alljets_2018_8_24_lim/all/limits_templates_'+discriminant+'_'+signal+'M2000'+'_1000p0fbinv_expected.txt',
+#               '/user_data/ssagir/Zprime_limits_2018/templates_zpMass_2018_8_29_lim/btagcats/limits_templates_'+discriminant+'_'+signal+'M2000'+'_1000p0fbinv'+binning+'_expected.txt',
+#               '/user_data/ssagir/Zprime_limits_2018/templates_zpMass_2018_8_29_combination_lim/btagcats/limits_templates_'+discriminant+'_'+signal+'M2000'+'_1000p0fbinv'+binning+'_expected.txt',
+#               '/user_data/ssagir/Zprime_limits_2018/templates_alljets_2018_8_24_lim/all/limits_templates_'+discriminant+'_'+signal+'M2000'+'_300p0fbinv_expected.txt',
+#               '/user_data/ssagir/Zprime_limits_2018/templates_zpMass_2018_8_29_lim/btagcats/limits_templates_'+discriminant+'_'+signal+'M2000'+'_300p0fbinv'+binning+'_expected.txt',
+#               '/user_data/ssagir/Zprime_limits_2018/templates_zpMass_2018_8_29_combination_lim/btagcats/limits_templates_'+discriminant+'_'+signal+'M2000'+'_300p0fbinv'+binning+'_expected.txt',
+# 			  ]
+# 
+# limLegs    = [
+#               '3000 fb^{-1} -- 0l',
+#               '3000 fb^{-1} -- 1l',
+#               '3000 fb^{-1} -- 0l+1l',
+#               '1000 fb^{-1} -- 0l',
+#               '1000 fb^{-1} -- 1l',
+#               '1000 fb^{-1} -- 0l+1l',
+#               '300 fb^{-1} -- 0l',
+#               '300 fb^{-1} -- 1l',
+#               '300 fb^{-1} -- 0l+1l',
+# 			  ]
+			  
 scale_up = [0,0,0,0,0][:len(mass_str)]#%
 scale_dn = [0,0,0,0,0][:len(mass_str)]#%
 pdf_up   = [0,0,0,0,0][:len(mass_str)]#%
@@ -111,7 +184,7 @@ if( iPos==0 ): CMS_lumi.relPosX = 0.12
 H_ref = 600; 
 W_ref = 800; 
 W = W_ref
-H  = H_ref
+H = H_ref
 
 iPeriod = 0 #see CMS_lumi.py module for usage!
 
@@ -161,21 +234,34 @@ for limFile in limFiles:
 		observed[limFile].SetPoint(i,observeds_[i][0],observeds_[i][1])
 		expected[limFile].SetPoint(i,expecteds_[i][0],expecteds_[i][1])
 
-	ind+=1
+	#if ind==10: ind+=1
+	if ind==3: ind+=3
 	observed[limFile].SetLineColor(rt.kBlack)
 	observed[limFile].SetLineWidth(2)
 	observed[limFile].SetMarkerStyle(20)							
-	expected[limFile].SetLineColor(ind)
+	expected[limFile].SetLineColor(ind/3+1)
 	expected[limFile].SetLineWidth(2)
-	expected[limFile].SetLineStyle(1)
-                                               
-canvas = rt.TCanvas("canvas","Limits", 1000, 800)
-canvas.SetBottomMargin(0.15)
-canvas.SetRightMargin(0.06)
+	if ind%3==0: expected[limFile].SetLineStyle(1)
+	if ind%3==1: expected[limFile].SetLineStyle(2)
+	if ind%3==2: expected[limFile].SetLineStyle(9)
+	ind+=1
+
+canvas = rt.TCanvas("c4","c4",50,50,W,H)
+canvas.SetFillColor(0)
+canvas.SetBorderMode(0)
+canvas.SetFrameFillStyle(0)
+canvas.SetFrameBorderMode(0)
+canvas.SetLeftMargin( L/W )
+canvas.SetRightMargin( R/W )
+canvas.SetTopMargin( T/H )
+canvas.SetBottomMargin( B/H )
+#canvas.SetTickx(0)
+#canvas.SetTicky(0)
 canvas.SetLogy()
-	
-XaxisTitle = "g^{RS}_{KK} mass [TeV]"
-YaxisTitle = "#sigma(g^{RS}_{KK}) [pb]"
+
+XaxisTitle = "RSG mass [TeV]"
+YaxisTitle = "#sigma(RSG #rightarrow t#bar{t}) [pb]"
+
 expected[limFiles[0]].Draw('AL')
 expected[limFiles[0]].GetYaxis().SetRangeUser(yrange_min,yrange_max)
 expected[limFiles[0]].GetXaxis().SetRangeUser(xrange_min,xrange_max)
@@ -195,19 +281,19 @@ theory.Draw("same")
 theory13tev.SetLineColor(1)
 theory13tev.SetLineStyle(2)
 theory13tev.SetLineWidth(2)
-theory13tev.Draw("same")
+#theory13tev.Draw("same")
 
-leg = rt.TLegend(.5,.55,.93,.94)
-leg.AddEntry(theory13tev, "Signal cross section (13 TeV)", "l")
-leg.AddEntry(theory, "Signal cross section (14 TeV)", "l")
+leg = rt.TLegend(.5,.5,.93,.9)
+#leg.AddEntry(theory13tev, "Signal cross section (13 TeV)", "l")
+leg.AddEntry(theory, "Signal cross section", "l")
 i=-1
 for limFile in limFiles:
 	i+=1
 	leg.AddEntry(expected[limFile], limLegs[i], "l")
 
 #draw the lumi text on the canvas
-# CMS_lumi.lumi_sqrtS = lumiPlot+" fb^{-1} (14 TeV)" # used with iPeriod = 0, e.g. for simulation-only plots (default is an empty string)
-# CMS_lumi.CMS_lumi(canvas, iPeriod, iPos)
+CMS_lumi.lumi_sqrtS = "14 TeV"#lumiPlot+" fb^{-1} (14 TeV)" # used with iPeriod = 0, e.g. for simulation-only plots (default is an empty string)
+CMS_lumi.CMS_lumi(canvas, iPeriod, iPos)
 
 leg.SetShadowColor(0)
 leg.SetFillStyle(0)
@@ -216,8 +302,8 @@ leg.SetFillColor(0)
 leg.SetLineColor(0)
 leg.Draw() 
 
-folder='templates_zpMass_2018_8_23_combination_limplots'
-canvas.SaveAs(folder+'/comparisonljets'+'.pdf')
-canvas.SaveAs(folder+'/comparisonljets'+'.png')
-canvas.SaveAs(folder+'/comparisonljets'+'.eps')
+folder='templates_zpMass_2018_8_29_combination_limplots'
+canvas.SaveAs(folder+'/combosystcomparisonlumiall'+'.pdf')
+canvas.SaveAs(folder+'/combosystcomparisonlumiall'+'.png')
+canvas.SaveAs(folder+'/combosystcomparisonlumiall'+'.eps')
 

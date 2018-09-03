@@ -77,7 +77,7 @@ if( iPos==0 ): CMS_lumi.relPosX = 0.12
 H_ref = 600; 
 W_ref = 800; 
 W = W_ref
-H  = H_ref
+H = H_ref
 
 iPeriod = 0 #see CMS_lumi.py module for usage!
 
@@ -180,8 +180,8 @@ def PlotLimits(limitDir,limitFile,lumiStr,tempKey):
     #canvas.SetTicky(0)
     canvas.SetLogy()
 
-    XaxisTitle = "g^{RS}_{KK} mass [TeV]"
-    YaxisTitle = "#sigma(g^{RS}_{KK}) [pb]"
+    XaxisTitle = "RSG mass [TeV]"
+    YaxisTitle = "#sigma(RSG #rightarrow t#bar{t}) [pb]"
 
     expected95.Draw("a3")
     expected95.GetYaxis().SetRangeUser(.001+.00001,10.45)
@@ -240,20 +240,19 @@ def PlotLimits(limitDir,limitFile,lumiStr,tempKey):
     return round(limExpected,2), round(limObserved,2)
 
 iPlotList=['zpMass']
-tempKeys = ['btagcats','nobtagcats']#,'ttagcats','nottagcats']
+tempKeys = ['btagcats','nobtagcats']
 cutString=''
 dirs = {
-		'Zp20180812_100GeVbinsDRgt1':'templates_DRgt1_zpMass_2018_8_12',
 		'Zp20180812_17017fullsel':'templates_17017fullsel_zpMass_2018_8_12',
 		'Zp20180812_17017fullselDRgt1':'templates_17017fullselDRgt1_zpMass_2018_8_12_lim',
 		'Zp20180814':'templates_zpMass_2018_8_14_lim',
-		'Zp20180814noRFonsig':'templates_zpMass_2018_8_14_noRFonsig_lim',
 		'Zp20180817':'templates_zpMass_2018_8_17_lim',
-		'Zp20180817ttinc':'templates_ttinc_zpMass_2018_8_17_lim',
 		'Zp20180823':'templates_zpMass_2018_8_23_lim',
 		'Zp20180823combo':'templates_zpMass_2018_8_23_combination_lim',
+		'Zp20180829':'templates_zpMass_2018_8_29_lim',
+		'Zp20180829combo':'templates_zpMass_2018_8_29_combination_lim',
 		}
-dirKeyList = ['Zp20180823','Zp20180823combo']
+dirKeyList = ['Zp20180829combo']
 binnings = ['1p1']
 
 expLims = {}

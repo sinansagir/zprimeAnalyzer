@@ -1,9 +1,8 @@
 #!/usr/bin/python
 
 import ROOT as rt
-from array import array
 import os,sys,math
-from math import *
+from array import array
 parent = os.path.dirname(os.getcwd())
 sys.path.append(parent)
 import CMS_lumi, tdrstyle
@@ -82,7 +81,7 @@ if( iPos==0 ): CMS_lumi.relPosX = 0.12
 H_ref = 600; 
 W_ref = 800; 
 W = W_ref
-H  = H_ref
+H = H_ref
 
 iPeriod = 0 #see CMS_lumi.py module for usage!
 
@@ -99,8 +98,9 @@ def PlotLimits(limitDir,limitFile,lumiStr,tempKey):
     print
     print 'mass'.ljust(ljust_i), 
     if not blind: 'observed'.ljust(ljust_i), 
-    print '-2 Sigma'.ljust(ljust_i), '-1 Sigma'.ljust(ljust_i), 'expected'.ljust(ljust_i), '+1 Sigma'.ljust(ljust_i), '+2 Sigma'.ljust(ljust_i)
-    print 'mass'.ljust(ljust_i), '3 Sigma Reach'.ljust(ljust_i), '5 Sigma Reach'.ljust(ljust_i)
+    print 'expected'.ljust(ljust_i), 
+    print '[-1 Sigma'.ljust(ljust_i), ', +1 Sigma'.ljust(ljust_i), '] [-2 Sigma'.ljust(ljust_i), ', +2 Sigma'.ljust(ljust_i),']'.ljust(ljust_i),
+    print '3 Sigma'.ljust(ljust_i), '5 Sigma'.ljust(ljust_i)
     
     limExpected = 2
     limObserved = 2
@@ -157,8 +157,9 @@ def PlotLimits(limitDir,limitFile,lumiStr,tempKey):
         round_i = 3
         print str(int(mass[i])).ljust(ljust_i), 
         if not blind: print '& '+str(round(obs[i],round_i)).ljust(ljust_i), 
-        print '& '+str(round(exp95L[i],round_i)).ljust(ljust_i), '& '+str(round(exp68L[i],round_i)).ljust(ljust_i), '& '+str(round(exp[i],round_i)).ljust(ljust_i), '& '+str(round(exp68H[i],round_i)).ljust(ljust_i), '& '+str(round(exp95H[i],round_i)).ljust(ljust_i)+' \\\\'
-        print str(int(mass[i])).ljust(ljust_i), '& '+str(round(sigma3[i],round_i)).ljust(ljust_i), '& '+str(round(sigma5[i],round_i)).ljust(ljust_i)+' \\\\'
+        print '& '+str(round(exp[i],round_i)).ljust(ljust_i), 
+        print '& ['+str(round(exp[i]-exp68L[i],round_i)).ljust(ljust_i)+', '+str(round(exp[i]+exp68H[i],round_i)).ljust(ljust_i)+'] & ['+str(round(exp[i]-exp95L[i],round_i)).ljust(ljust_i)+', '+str(round(exp[i]+exp95H[i],round_i)).ljust(ljust_i)+'] & ',
+        print str(round(sigma3[i],round_i)).ljust(ljust_i), ' & '+str(round(sigma5[i],round_i)).ljust(ljust_i)+' \\\\'
     print
     signExp = "="
     signObs = "="
@@ -220,8 +221,8 @@ def PlotLimits(limitDir,limitFile,lumiStr,tempKey):
     #canvas.SetTicky(0)
     canvas.SetLogy()
 
-    XaxisTitle = "g^{RS}_{KK} mass [TeV]"
-    YaxisTitle = "#sigma(g^{RS}_{KK}) [pb]"
+    XaxisTitle = "RSG mass [TeV]"
+    YaxisTitle = "#sigma(RSG #rightarrow t#bar{t}) [pb]"
 
     if plotLimits:
 		expected95.Draw("a3")
@@ -294,20 +295,18 @@ def PlotLimits(limitDir,limitFile,lumiStr,tempKey):
     return round(limExpected,2), round(limObserved,2)
 
 iPlotList=['zpMass']
-tempKeys = ['btagcats','nobtagcats']#,'ttagcats','nottagcats']
+tempKeys = ['btagcats','nobtagcats']
 cutString=''
 dirs = {
-		'Zp20180812_100GeVbinsDRgt1':'templates_DRgt1_zpMass_2018_8_12',
 		'Zp20180812_17017fullsel':'templates_17017fullsel_zpMass_2018_8_12',
 		'Zp20180812_17017fullselDRgt1':'templates_17017fullselDRgt1_zpMass_2018_8_12_disc',
 		'Zp20180814':'templates_zpMass_2018_8_14_disc',
-		'Zp20180814noRFonsig':'templates_zpMass_2018_8_14_noRFonsig_disc',
 		'Zp20180817':'templates_zpMass_2018_8_17_disc',
-		'Zp20180817ttinc':'templates_ttinc_zpMass_2018_8_17_disc',
 		'Zp20180823':'templates_zpMass_2018_8_23_disc',
 		'Zp20180823combo':'templates_zpMass_2018_8_23_combination_disc',
+		'Zp20180829combo':'templates_zpMass_2018_8_29_combination_disc',
 		}
-dirKeyList = ['Zp20180823','Zp20180823combo']
+dirKeyList = ['Zp20180829combo']
 binnings = ['1p1']
 
 expLims = {}
