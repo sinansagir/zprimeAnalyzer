@@ -9,9 +9,12 @@ samples = {
 'ZpM5000':'5tev',
 'ZpM6000':'6tev',
 
-'TTinc':'ttinc',
-'TTmtt0to1000inc':'ttinc',
-'TTmtt1000toInfinc':'ttinc',
+# 'TTinc':'ttinc',
+# 'TTmtt0to1000inc':'ttinc',
+# 'TTmtt1000toInfinc':'ttinc',
+'TTinc':'TT_TuneCUETP8M2T4_ntuple',
+'TTmtt0to1000inc':'TT_TuneCUETP8M2T4_ntuple',
+'TTmtt1000toInfinc':'TT_TuneCUETP8M2T4_ntuple',
 'TTmtt1000toInf':'ttbar',
 
 'STs':'ST_s_channel_4f_InclusiveDecays_ntuple',

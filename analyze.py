@@ -37,6 +37,7 @@ def analyze(tTree,process,cutList,doAllSys,iPlot,plotDetails,category):
 	cut += ' && ((isSingEl && leadJetPt>185) || (isSingMu && leadJetPt>150))'
 	cut += ' && ((isSingEl && subLeadJetPt>50) || (isSingMu && subLeadJetPt>50))'
 	cut += ' && (minDR_lepJet>0.4 || ptRel_lepJet>25)'
+	#cut += ' && (lepRelIso<0.4 && lepAbsIso<50)'
 	if 'Chi2' not in iPlot: cut += ' && ((thadChi2+tlepChi2)<30)'
 	if iPlot!='zpDeltaR': cut += ' && (zpDeltaR > 1)'
 	if 'topAK8' in iPlot: cut += ' && (Ntoptagged == 1)'
