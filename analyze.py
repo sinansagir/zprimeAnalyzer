@@ -59,9 +59,9 @@ def analyze(tTree,process,cutList,doAllSys,iPlot,plotDetails,category):
 	nttagString = 'Ntoptagged'
 	nWtagString = 'NJetsWtagged_0p6_notTtagged'
 	nbtagString = ''
-	if nttag=='0': nbtagString = 'tlepLeadAK4BTag/2'
+	if nttag=='0': nbtagString = 'tlepLeadAK4BTag'
 	elif nttag=='1': nbtagString = 'topAK8BTag'
-	elif nttag=='0p': nbtagString = '((Ntoptagged==0 && tlepLeadAK4BTag/2) || (Ntoptagged==1 && topAK8BTag))'
+	elif nttag=='0p': nbtagString = '((Ntoptagged==0 && tlepLeadAK4BTag) || (Ntoptagged==1 && topAK8BTag))'
 	njetsString = 'NJets_JetSubCalc'
 	nttagCut = ''
 	if 'p' in nttag: nttagCut+=' && '+nttagString+'>='+nttag[:-1]

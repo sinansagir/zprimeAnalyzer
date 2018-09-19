@@ -1,9 +1,8 @@
 #!/usr/bin/python
 
 import ROOT as rt
-from array import array
 import os,sys,math
-from math import *
+from array import array
 parent = os.path.dirname(os.getcwd())
 sys.path.append(parent)
 import CMS_lumi, tdrstyle
@@ -24,12 +23,12 @@ theory_xsec = [1.3*1.153,1.3*1.556*0.1,1.3*3.585*0.01,1.3*1.174*0.01,1.3*4.939*0
 theory_xsec_13tev = [1.3*0.9528,1.3*0.1289,1.3*0.02807,1.3*0.009095]
 
 limFiles   = [ #compare different optimized selections and discriminants
-              '/user_data/ssagir/Zprime_limits_2018/templates_zpMass_2018_8_23_lim/btagcats/limits_templates_'+discriminant+'_'+signal+'M2000'+'_3000p0fbinv'+binning+'_expected.txt',
-              '/user_data/ssagir/Zprime_limits_2018/templates_zpMass_2018_8_23_lim/btagcats/limits_templates_'+discriminant+'_'+signal+'M2000'+'_1000p0fbinv'+binning+'_expected.txt',
-              '/user_data/ssagir/Zprime_limits_2018/templates_zpMass_2018_8_23_lim/btagcats/limits_templates_'+discriminant+'_'+signal+'M2000'+'_300p0fbinv'+binning+'_expected.txt',
-              '/user_data/ssagir/Zprime_limits_2018/templates_zpMass_2018_8_23_lim/btagcats/limits_templates_'+discriminant+'_'+signal+'M2000'+'_36p0fbinv'+binning+'_expected.txt',
-              '/user_data/ssagir/Zprime_limits_2018/templates_zpMass_2018_8_23_2xSyst_lim/btagcats/limits_templates_'+discriminant+'_'+signal+'M2000'+'_36p0fbinv'+binning+'_expected.txt',
-              '/user_data/ssagir/Zprime_limits_2018/templates_zpMass_2018_8_23_statOnly_lim/btagcats/limits_templates_'+discriminant+'_'+signal+'M2000'+'_36p0fbinv'+binning+'_expected.txt',
+              '/user_data/ssagir/Zprime_limits_2018/templates_zpMass_2018_8_29_lim/btagcats/limits_templates_'+discriminant+'_'+signal+'M2000'+'_3000p0fbinv'+binning+'_expected.txt',
+              '/user_data/ssagir/Zprime_limits_2018/templates_zpMass_2018_8_29_lim/btagcats/limits_templates_'+discriminant+'_'+signal+'M2000'+'_1000p0fbinv'+binning+'_expected.txt',
+              '/user_data/ssagir/Zprime_limits_2018/templates_zpMass_2018_8_29_lim/btagcats/limits_templates_'+discriminant+'_'+signal+'M2000'+'_300p0fbinv'+binning+'_expected.txt',
+              '/user_data/ssagir/Zprime_limits_2018/templates_zpMass_2018_8_29_lim/btagcats/limits_templates_'+discriminant+'_'+signal+'M2000'+'_36p0fbinv'+binning+'_expected.txt',
+              '/user_data/ssagir/Zprime_limits_2018/templates_zpMass_2018_8_29_2xSyst_lim/btagcats/limits_templates_'+discriminant+'_'+signal+'M2000'+'_36p0fbinv'+binning+'_expected.txt',
+              '/user_data/ssagir/Zprime_limits_2018/templates_zpMass_2018_8_29_statOnly_lim/btagcats/limits_templates_'+discriminant+'_'+signal+'M2000'+'_36p0fbinv'+binning+'_expected.txt',
               '/user_data/ssagir/Zprime_limits_2018/templates_zpMass_B2G17017ljets_lim/limits_templates_'+discriminant+'_'+signal+'M2000'+'_36p0fbinv'+binning+'_expected.txt',
               '/user_data/ssagir/Zprime_limits_2018/templates_zpMass_B2G17017all_lim/limits_templates_'+discriminant+'_'+signal+'M2000'+'_36p0fbinv'+binning+'_expected.txt',
 			  ]
@@ -109,7 +108,7 @@ if( iPos==0 ): CMS_lumi.relPosX = 0.12
 H_ref = 600; 
 W_ref = 800; 
 W = W_ref
-H  = H_ref
+H = H_ref
 
 iPeriod = 0 #see CMS_lumi.py module for usage!
 
@@ -167,13 +166,22 @@ for limFile in limFiles:
 	expected[limFile].SetLineWidth(2)
 	expected[limFile].SetLineStyle(1)
                                                
-canvas = rt.TCanvas("canvas","Limits", 1000, 800)
-canvas.SetBottomMargin(0.15)
-canvas.SetRightMargin(0.06)
+canvas = rt.TCanvas("c4","c4",50,50,W,H)
+canvas.SetFillColor(0)
+canvas.SetBorderMode(0)
+canvas.SetFrameFillStyle(0)
+canvas.SetFrameBorderMode(0)
+canvas.SetLeftMargin( L/W )
+canvas.SetRightMargin( R/W )
+canvas.SetTopMargin( T/H )
+canvas.SetBottomMargin( B/H )
+#canvas.SetTickx(0)
+#canvas.SetTicky(0)
 canvas.SetLogy()
-	
-XaxisTitle = "g^{RS}_{KK} mass [TeV]"
-YaxisTitle = "#sigma(g^{RS}_{KK}) [pb]"
+
+XaxisTitle = "RSG mass [TeV]"
+YaxisTitle = "#sigma(RSG #rightarrow t#bar{t}) [pb]"
+
 expected[limFiles[0]].Draw('AL')
 expected[limFiles[0]].GetYaxis().SetRangeUser(yrange_min,yrange_max)
 expected[limFiles[0]].GetXaxis().SetRangeUser(xrange_min,xrange_max)
@@ -204,8 +212,8 @@ for limFile in limFiles:
 	leg.AddEntry(expected[limFile], limLegs[i], "l")
 
 #draw the lumi text on the canvas
-# CMS_lumi.lumi_sqrtS = lumiPlot+" fb^{-1} (14 TeV)" # used with iPeriod = 0, e.g. for simulation-only plots (default is an empty string)
-# CMS_lumi.CMS_lumi(canvas, iPeriod, iPos)
+CMS_lumi.lumi_sqrtS = ""#lumiPlot+" fb^{-1} (14 TeV)" # used with iPeriod = 0, e.g. for simulation-only plots (default is an empty string)
+CMS_lumi.CMS_lumi(canvas, iPeriod, iPos)
 
 leg.SetShadowColor(0)
 leg.SetFillStyle(0)
@@ -214,7 +222,7 @@ leg.SetFillColor(0)
 leg.SetLineColor(0)
 leg.Draw() 
 
-folder='templates_zpMass_2018_8_23_limplots'
+folder='templates_zpMass_2018_8_29_limplots'
 canvas.SaveAs(folder+'/comparisonljets'+'.pdf')
 canvas.SaveAs(folder+'/comparisonljets'+'.png')
 canvas.SaveAs(folder+'/comparisonljets'+'.eps')

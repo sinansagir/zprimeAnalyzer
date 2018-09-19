@@ -14,7 +14,7 @@ gROOT.SetBatch(1)
 start_time = time.time()
 
 lumiStr = str(targetlumi/1000).replace('.','p') # 1/fb
-step1Dir = '/user_data/ssagir/CMSSW_7_4_7/src/zprimeAnalyzer/singLep/inputFiles_18_8_17'
+step1Dir = '/user_data/ssagir/DAnalysis_framework/v.1.1_rc2_special_d3.4.2p15/DAnalysis/DAnalysis_workdir/output_27tev/'
 
 """
 Note: 
@@ -26,21 +26,18 @@ The uncertainty shape shifted files will be taken from <step1Dir>/../<shape>/<pr
 """
 
 bkgList = [
-'TTinc','TTmtt1000toInf','TTmtt0to1000inc','TTmtt1000toInfinc',
-'STs','STt','STbt','STtW','STbtW',
-'WJetsInc',
-'DyHT70to100','DyHT100to200','DyHT200to400','DyHT400to600','DyHT600to800','DyHT800to1200','DyHT1200to2500','DyHT2500toInf',
-'WW',
-'QCDPt15to7000',
-'QCDflatPt15to7000',
-#'QCDmjj1000toInf','QCDmjj0to1000inc','QCDmjj1000toInfinc',
-'QCDPt50to80','QCDPt80to120','QCDPt120to170','QCDPt170to300','QCDPt300to470','QCDPt470to600','QCDPt600to800','QCDPt800to1000','QCDPt1000toInf',
+#'TTinc',
+'t123j',
+'VJ',
+'mumu',
+'eeHT500to1000','eeHT1000to2000','eeHT2000to5000','eeHT5000to10000','eeHT10000to27000',
+'VV',
+'jj',
 ]
-
 dataList = ['Data']
 
 whichSignal = 'Zp' #HTB, TT, BB, or X53X53
-massList = range(2000,6000+1,1000)
+massList = range(2000,10000+1,2000)
 sigList = [whichSignal+'M'+str(mass) for mass in massList]
 decays = ['']
 
@@ -74,7 +71,7 @@ pfix+='_'+datestr#+'_'+timestr
 if len(sys.argv)>5: isEMlist=[str(sys.argv[5])]
 else: isEMlist = ['E','M']
 if len(sys.argv)>6: nttaglist=[str(sys.argv[6])]
-else: nttaglist = ['0p','0','1']
+else: nttaglist = ['0','1']
 if len(sys.argv)>7: nWtaglist=[str(sys.argv[7])]
 else: nWtaglist=['0p']
 if len(sys.argv)>8: nbtaglist=[str(sys.argv[8])]
@@ -138,13 +135,17 @@ bigbins = [0,50,100,125,150,175,200,225,250,275,300,325,350,375,400,450,500,600,
 
 plotList = {#discriminantName:(discriminantNtupleName, binning, xAxisLabel)
 	'lepPt':('lepPt',linspace(0, 1000, 51).tolist(),';p_{T}(l) [GeV]'),
-	'lepEta':('lepEta',linspace(-2.4, 2.4, 51).tolist(),';Lepton #eta'),
+	'lepEta':('lepEta',linspace(-3, 3, 51).tolist(),';Lepton #eta'),
 	'lepPhi':('lepPhi',linspace(-4, 4, 51).tolist(),';Lepton #phi'),
-	'lepRelIso':('lepRelIso',linspace(0, 1, 51).tolist(),';Lepton RelIso'),
-	'lepAbsIso':('lepAbsIso',linspace(0, 1, 51).tolist(),';Lepton AbsIso'),
+	'lepRelIso':('lepRelIso',linspace(0, 10, 51).tolist(),';Lepton RelIso'),
+	'lepAbsIso':('lepAbsIso',linspace(0, 2000, 51).tolist(),';Lepton AbsIso'),
 	'metPt':('metPt',linspace(0, 1500, 51).tolist(),';p^{miss}_{T} [GeV]'),
 	'leadJetPt':('leadJetPt',linspace(0, 3000, 51).tolist(),';p_{T}(j_{1}) [GeV]'),
+	'leadJetEta':('leadJetEta',linspace(-3, 3, 51).tolist(),';j_{1} #eta'),
+	'leadJetPhi':('leadJetPhi',linspace(-4, 4, 51).tolist(),';j_{1} #phi'),
 	'subLeadJetPt':('subLeadJetPt',linspace(0, 1500, 51).tolist(),';p_{T}(j_{2}) [GeV]'),
+	'subLeadJetEta':('subLeadJetEta',linspace(-3, 3, 51).tolist(),';j_{2} #eta'),
+	'subLeadJetPhi':('subLeadJetPhi',linspace(-4, 4, 51).tolist(),';j_{2} #phi'),
 	'tlepLeadAK4Pt':('tlepLeadAK4Pt',linspace(0, 1500, 51).tolist(),';p_{T}(j_{1} in leptonic t) [GeV]'),
 	'NJetsSel':('NJetsSel',linspace(0, 15, 16).tolist(),';AK4 jet multiplicity'),
 	'minDR_lepJet':('minDR_lepJet',linspace(0, 2, 51).tolist(),';min[#DeltaR(l, jets)]'),
@@ -160,6 +161,8 @@ plotList = {#discriminantName:(discriminantNtupleName, binning, xAxisLabel)
 	'tlepMass':('tlepMass',linspace(50, 300, 51).tolist(),';M^{rec}(leptonic t) [GeV]'),
 	'tlepChi2':('tlepChi2',linspace(0, 100, 51).tolist(),';#chi^{2}(leptonic t)'),
 	'topAK8Pt':('topAK8Pt',linspace(0, 3000, 51).tolist(),';p_{T}(tagged t) [GeV]'),
+	'topAK8Eta':('topAK8Eta',linspace(-3, 3, 51).tolist(),';tagged t #eta'),
+	'topAK8Phi':('topAK8Phi',linspace(-4, 4, 51).tolist(),';tagged t #phi'),
 	'topAK8Mass':('topAK8Mass',linspace(0, 300, 51).tolist(),';M(tagged t) [GeV]'),
 	'topAK8Tau32':('topAK8Tau32',linspace(0, 1, 51).tolist(),';#tau_{3}/#tau_{2}(tagged t)'),
 	'topAK8SDMass':('topAK8SDMass',linspace(0, 300, 51).tolist(),';M_{S-D}(tagged t) [GeV]'),
@@ -168,8 +171,8 @@ plotList = {#discriminantName:(discriminantNtupleName, binning, xAxisLabel)
 	'zpDeltaR':('zpDeltaR',linspace(0, 5, 51).tolist(),';#DeltaR(t_{1}, t_{2})'),
 	'zpDeltaY':('zpDeltaY',linspace(0, 5, 51).tolist(),';#DeltaY(t_{1}, t_{2})'),
 	'zpPt':('zpPt',linspace(0, 2000, 51).tolist(),';p_{T}(t#bar{t}) [GeV]'),
-	'zpMass':('zpMass',linspace(0, 8000, 161).tolist(),';M_{rec}(t#bar{t}) [GeV]'),
-	'genzpMass':('genzpMass',linspace(0, 8000, 161).tolist(),';M_{gen}(t#bar{t}) [GeV]'),
+	'zpMass':('zpMass',linspace(0, 12000, 241).tolist(),';M_{rec}(t#bar{t}) [GeV]'),
+	'genzpMass':('genzpMass',linspace(0, 12000, 241).tolist(),';M_{gen}(t#bar{t}) [GeV]'),
 		
 	'NJets_vs_NBJets':('NJets_JetSubCalc:NJetsCSV_JetSubCalc',linspace(0, 15, 16).tolist(),';AK4 jet multiplicity',linspace(0, 10, 11).tolist(),';b-tagged jet multiplicity'),
 

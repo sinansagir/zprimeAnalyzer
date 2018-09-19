@@ -15,10 +15,10 @@ lumiStrOrg = str(targetlumi/1000).replace('.','p') # 1/fb
 
 region='SR' #PS,SR,TTCR,WJCR
 isCategorized=1
-cutString=''#'DY1.0_1jet400_2jet400'
+cutString=''
 if region=='SR': pfix='templates_zpMass_'
 if not isCategorized: pfix='kinematics_'+region+'_'
-pfix+='2018_8_27'
+pfix+='2018_9_19'
 outDir = os.getcwd()+'/'+pfix+'/'+cutString
 
 scaleSignalXsecTo1pb = True # this has to be "True" if you are making templates for limit calculation!!!!!!!!
@@ -27,24 +27,26 @@ newTargetlumi = 3000000.
 doAllSys = False
 doQ2sys = False
 if not doAllSys: doQ2sys = False
-systematicList = ['pileup','jec','jer','jms','jmr','tau21','taupt','topsf','toppt','ht','muR','muF','muRFcorrd','trigeff','btag','mistag']
+systematicList = ['pileup','jec','jer','topsf','toppt','muR','muF','muRFcorrd','btag','mistag']
 normalizeRENORM_PDF = False #normalize the renormalization/pdf uncertainties to nominal templates --> normalizes signal processes only !!!!
 rebinBy = 2 #performs a regular rebinning with "Rebin(rebinBy)", put -1 if rebinning is not desired
+if not isCategorized: rebinBy = -1
 
 doTTinc = False
-bkgGrupList = ['ttbar','sitop','wjets','zjets','dibos','qcd']
+bkgGrupList = ['ttbar','other']#'sitop','wjets','zjets','dibos','qcd']#,'qcdinc','qcdflat','qcdptbin']
+#bkgGrupList = ['top','ewk','qcd']
 bkgProcList = []#'tt','qcd']
 bkgProcs = {}
-bkgProcs['ttbar'] = ['TTmtt1000toInf','TTmtt0to1000inc','TTmtt1000toInfinc']
+bkgProcs['ttbar'] = ['t123j']
 if doTTinc: bkgProcs['ttbar'] = ['TTinc']
-bkgProcs['sitop'] = ['STs','STt','STbt','STtW','STbtW']
-bkgProcs['wjets'] = ['WJetsInc']
-bkgProcs['zjets'] = ['DyHT70to100','DyHT100to200','DyHT200to400','DyHT400to600','DyHT600to800','DyHT800to1200','DyHT1200to2500','DyHT2500toInf']
-bkgProcs['dibos'] = ['WW']
-#bkgProcs['qcd'] = ['QCDPt15to7000']
-#bkgProcs['qcd'] = ['QCDflatPt15to7000']
-bkgProcs['qcd'] = ['QCDPt50to80','QCDPt80to120','QCDPt120to170','QCDPt170to300','QCDPt300to470','QCDPt470to600','QCDPt600to800','QCDPt800to1000','QCDPt1000toInf']
-#bkgProcs['qcd'] = ['QCDPt170to300','QCDPt300to470','QCDPt470to600','QCDPt600to800','QCDPt800to1000','QCDPt1000toInf']
+bkgProcs['sitop'] = ['t123j']
+bkgProcs['wjets'] = ['VJ']
+bkgProcs['zjets'] = ['mumu','eeHT500to1000','eeHT1000to2000','eeHT2000to5000','eeHT5000to10000','eeHT10000to27000']
+bkgProcs['dibos'] = ['VV']
+bkgProcs['top'] = bkgProcs['ttbar']+bkgProcs['sitop']
+bkgProcs['ewk'] = bkgProcs['wjets']+bkgProcs['zjets']+bkgProcs['dibos']
+bkgProcs['qcd'] = ['jj']
+bkgProcs['other'] = bkgProcs['sitop']+bkgProcs['wjets']+bkgProcs['zjets']+bkgProcs['dibos']+bkgProcs['qcd']
 dataList = ['Data']
 
 htProcs = []#['ewk','WJets']
@@ -52,13 +54,13 @@ topptProcs = []#['top','TTJets']
 bkgProcs['top_q2up'] = []#bkgProcs['T']+['TTJetsPHQ2U']#'TtWQ2U','TbtWQ2U']
 bkgProcs['top_q2dn'] = []#bkgProcs['T']+['TTJetsPHQ2D']#'TtWQ2D','TbtWQ2D']
 
-massList = range(2000,6000+1,1000)
+massList = range(2000,10000+1,2000)
 sigList = ['ZpM'+str(mass) for mass in massList]
 
 isEMlist = ['E','M']
-nttaglist = ['0p','0','1']
+nttaglist = ['0','1']
 nWtaglist = ['0p']
-nbtaglist = ['0p','0','1']#,'2']
+nbtaglist = ['0p','0','1']
 if not isCategorized: 
 	nttaglist = ['0p']
 	nbtaglist = ['0p']
@@ -69,16 +71,28 @@ tagList = ['nT'+item[0]+'_nW'+item[1]+'_nB'+item[2]+'_nJ'+item[3] for item in li
 for ind in range(len(catList)): catList[ind] = catList[ind].replace('_nT0p','').replace('_nW0p','').replace('_nB0p','').replace('_nJ0p','')
 for ind in range(len(tagList)): tagList[ind] = tagList[ind].replace('_nT0p','').replace('_nW0p','').replace('_nB0p','').replace('_nJ0p','')
 
-lumiSys = 0.0#25 #lumi uncertainty
-eltrigSys = 0.0 #electron trigger uncertainty
-mutrigSys = 0.0 #muon trigger uncertainty
-elIdSys = 0.0 #electron id uncertainty
-muIdSys = 0.0 #muon id uncertainty
-elIsoSys = 0.0 #electron isolation uncertainty
-muIsoSys = 0.0 #muon isolation uncertainty
+lumiSys = 0.01 #lumi uncertainty
+elIdIsoSys = 0.01 #electron id/iso uncertainty
+muIdIsoSys = 0.005 #muon id/iso uncertainty
+jesSys = 0.035 #JES uncertainty
+jerSys = 0.03 #JER uncertainty
+btagSys = 0.0#5 #b-tagging uncertainty
+ttagSys = 0.05 #t-tagging uncertainty
+puSys = 0.0#3 #Pileup uncertainty
+pdfSys = 0.024 #PDF uncertainty
+murfSys = 0.0 #Renorm/Fact. scale uncertainty
+elcorrdSys = math.sqrt(lumiSys**2+elIdIsoSys**2+jesSys**2+jerSys**2+btagSys**2+ttagSys**2+puSys**2+pdfSys**2+murfSys**2)
+mucorrdSys = math.sqrt(lumiSys**2+muIdIsoSys**2+jesSys**2+jerSys**2+btagSys**2+ttagSys**2+puSys**2+pdfSys**2+murfSys**2)
 
-elcorrdSys = 0.0#math.sqrt(lumiSys**2+eltrigSys**2+elIdSys**2+elIsoSys**2)
-mucorrdSys = 0.0#math.sqrt(lumiSys**2+mutrigSys**2+muIdSys**2+muIsoSys**2)
+modelingSys = {}
+modelingSys['ttbar'] = math.sqrt(0.03**2+0.04**2) #ttbar x-sec and muRF uncertainty
+modelingSys['sitop'] = 0.06 #Single top x-sec uncertainty
+modelingSys['wjets'] = math.sqrt(0.03**2+0.03**2) #W+jets x-sec and muRF uncertainty
+modelingSys['zjets'] = 0.06 #Z+jets x-sec uncertainty
+modelingSys['dibos'] = 0.06 #Diboson x-sec uncertainty
+modelingSys['qcd']   = 0.06 #QCD x-sec uncertainty
+modelingSys['other'] = math.sqrt(modelingSys['sitop']**2+modelingSys['wjets']**2+modelingSys['zjets']**2+modelingSys['dibos']**2+modelingSys['qcd']**2)
+modelingSys['Data']  = 0.0
 
 lumiScaleCoeff = newTargetlumi/targetlumi
 lumiStr = lumiStrOrg
