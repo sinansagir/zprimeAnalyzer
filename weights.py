@@ -1,6 +1,5 @@
 #!/usr/bin/python
 
-#targetlumi = 35867. # 1/pb
 targetlumi = 300000. # 1/pb
 
 # Number of processed MC events (before selections)
@@ -84,7 +83,7 @@ xsec['DyHT800to1200'] = 0.3852*1.23
 xsec['DyHT1200to2500'] = 0.08874*1.23
 xsec['DyHT2500toInf'] = 0.001755*1.23
 
-xsec['WW'] = 3.423
+xsec['WW'] = 131. #NNLO (arXiv:1408.5243) from https://docs.google.com/spreadsheets/d/1Oz8rWBoPJInKoy4_QyT0BArO9VnMe7AeyikUE09h2O0/edit#gid=0
 
 # 14TeV x-secs are scaled by an efficiency factor calculated from the comparison of filtering efficiencies between 13TeV and 14TeV samples -- form Christoph Schuler
 # These are taken from https://twiki.cern.ch/twiki/bin/viewauth/CMS/SummaryTable1G25ns#QCD    

@@ -15,7 +15,7 @@ lumi=3000 #for plots
 lumiInTemplates= '3000p0'#str(targetlumi/1000).replace('.','p') # 1/fb
 
 region='SR' #PS,SR,TTCR,WJCR
-isCategorized=1
+isCategorized=0
 iPlot='zpMass'
 if len(sys.argv)>1: iPlot=str(sys.argv[1])
 cutString=''#'DY1.0_1jet400_2jet400'
@@ -23,13 +23,12 @@ if region=='SR': pfix='templates_zpMass_'
 elif region=='WJCR': pfix='wjets_'
 elif region=='TTCR': pfix='ttbar_'
 if not isCategorized: pfix='kinematics_'+region+'_'
-templateDir=os.getcwd()+'/'+pfix+'2018_8_27/'+cutString+'/'
+templateDir=os.getcwd()+'/'+pfix+'mergeprocs_2018_8_29/'+cutString+'/'
 
 isRebinned=''#'_rebinned_stat1p1' #post for ROOT file names
 saveKey = ''# tag for plot names
 
 sigs = ['ZpM2000','ZpM3000','ZpM4000','ZpM5000','ZpM6000']
-#siglegs = {'ZpM2000':'g^{RS}_{KK} (2 TeV)', 'ZpM3000':'g^{RS}_{KK} (3 TeV)','ZpM4000':'g^{RS}_{KK} (4 TeV)','ZpM5000':'g^{RS}_{KK} (5 TeV)','ZpM6000':'g^{RS}_{KK} (6 TeV)'}
 siglegs = {'ZpM2000':'RSG (2 TeV)', 'ZpM3000':'RSG (3 TeV)','ZpM4000':'RSG (4 TeV)','ZpM5000':'RSG (5 TeV)','ZpM6000':'RSG (6 TeV)'}
 sigColors = {'ZpM2000':rt.kBlack, 'ZpM3000':rt.kRed,'ZpM4000':rt.kOrange,'ZpM5000':rt.kBlue,'ZpM6000':rt.kGreen+3}
 sigLines = {'ZpM2000':1, 'ZpM3000':3,'ZpM4000':5,'ZpM5000':7,'ZpM6000':7}
@@ -38,13 +37,11 @@ scaleSignals = True
 sigScaleFact = -1 #put -1 if auto-scaling wanted
 tempsig='templates_'+iPlot+'_'+sigs[0]+'_'+lumiInTemplates+'fbinv'+isRebinned+'.root'
 
-bkgProcList = ['ttbar','sitop','wjets','zjets','dibos','qcd']
-bkgHistColors = {'ttbar':rt.kRed-9,'sitop':rt.kRed-5,'wjets':rt.kBlue-7,'zjets':rt.kBlue-3,'dibos':rt.kBlue,'qcd':rt.kOrange-5,'ewk':rt.kBlue-7}
-proclegs = {'ttbar':'t#bar{t}','sitop':'Single top','wjets':'W+jets','zjets':'Z+jets','dibos':'WW','qcd':'QCD','data':'Data','ewk':'EW'}
+bkgProcList = ['ttbar','other']#'sitop','wjets','zjets','dibos','qcd']
+bkgHistColors = {'ttbar':rt.kRed-9,'sitop':rt.kRed-5,'wjets':rt.kBlue-7,'zjets':rt.kBlue-3,'dibos':rt.kBlue,'qcd':rt.kOrange-5,'ewk':rt.kBlue-7,'other':rt.kOrange-5}
+proclegs = {'ttbar':'t#bar{t}','sitop':'Single top','wjets':'W+jets','zjets':'Z+jets','dibos':'WW','qcd':'QCD','data':'Data','ewk':'EW','other':'Other'}
 
-systematicList = ['pileup','jec','jer','jms','jmr','tau21','taupt','topsf','trigeff','ht',
-				  'btag','mistag','pdfNew','muRFcorrdNew','toppt']
-if 'muRFcorrdNew' not in systematicList: saveKey='_noQ2'
+systematicList = ['pileup','jec','jer','topsf','btag','mistag','pdf','toppt']
 doAllSys = False
 doQ2sys  = False
 if not doAllSys: doQ2sys = False
@@ -61,7 +58,7 @@ drawYields = False
 doChi2KStests = False
 
 isEMlist = ['E','M']
-nttaglist = ['0p','0','1']
+nttaglist = ['0','1']
 nWtaglist = ['0p']
 nbtaglist = ['0p','0','1']#,'2']
 if not isCategorized: 
@@ -77,11 +74,26 @@ if 'YLD' in iPlot:
 
 tagList = list(itertools.product(nttaglist,nWtaglist,nbtaglist,njetslist))
 
-lumiSys = 0.01 # lumi uncertainty
-trigSys = 0.0 # trigger uncertainty
-lepIdSys = 0.0 # lepton id uncertainty
-lepIsoSys = 0.0 # lepton isolation uncertainty
-corrdSys = math.sqrt(lumiSys**2+trigSys**2+lepIdSys**2+lepIsoSys**2) #cheating while total e/m values are close
+lumiSys = 0.01 #lumi uncertainty
+lepIdIsoSys = 0.01 #lepton id/iso uncertainty
+jesSys = 0.035 #JES uncertainty
+jerSys = 0.03 #JER uncertainty
+btagSys = 0.0#5 #b-tagging uncertainty
+ttagSys = 0.05 #t-tagging uncertainty
+puSys = 0.0#3 #Pileup uncertainty
+pdfSys = 0.024 #PDF uncertainty
+murfSys = 0.0 #Renorm/Fact. scale uncertainty
+
+corrdSys = math.sqrt(lumiSys**2+lepIdIsoSys**2+jesSys**2+jerSys**2+btagSys**2+ttagSys**2+puSys**2+pdfSys**2+murfSys**2) #cheating while total e/m values are close
+
+modelingSys = {}
+modelingSys['ttbar'] = math.sqrt(0.03**2+0.04**2) #ttbar x-sec and muRF uncertainty
+modelingSys['sitop'] = 0.06 #Single top x-sec uncertainty
+modelingSys['wjets'] = math.sqrt(0.03**2+0.03**2) #W+jets x-sec and muRF uncertainty
+modelingSys['zjets'] = 0.06 #Z+jets x-sec uncertainty
+modelingSys['dibos'] = 0.06 #Diboson x-sec uncertainty
+modelingSys['qcd']   = 0.06 #QCD x-sec uncertainty
+modelingSys['other'] = math.sqrt(modelingSys['sitop']**2+modelingSys['wjets']**2+modelingSys['zjets']**2+modelingSys['dibos']**2+modelingSys['qcd']**2)
 
 def getNormUnc(hist,ibin,modelingUnc):
 	contentsquared = hist.GetBinContent(ibin)**2
@@ -170,7 +182,7 @@ if( iPos==0 ): CMS_lumi.relPosX = 0.12
 H_ref = 600; 
 W_ref = 800; 
 W = W_ref
-H  = H_ref
+H = H_ref
 
 iPeriod = 0 #see CMS_lumi.py module for usage!
 
@@ -182,8 +194,7 @@ L = 0.12*W_ref
 R = 0.04*W_ref
 
 tagPosX = 0.76
-tagPosY = 0.60
-if 'Tau32' in iPlot: tagPosX = 0.58
+tagPosY = 0.50
 if not blind: tagPosY-=0.1
 
 table = []
@@ -263,8 +274,10 @@ for tag in tagList:
 			errorStatOnly = bkgHT.GetBinError(ibin)**2
 			errorNorm = 0.
 			for proc in bkgProcList:
-				try: errorNorm += getNormUnc(bkghists[proc+catStr],ibin,0.0)
-				except: pass
+				try: errorNorm += getNormUnc(bkghists[proc+catStr],ibin,modelingSys[proc])
+				except Exception as e: 
+					print '===>>> WARNING! Exception occurred on line '+str(sys.exc_info()[-1].tb_lineno)+'. Passing ...'
+					pass
 
 			if doAllSys:
 				q2list=[]
@@ -469,8 +482,7 @@ for tag in tagList:
 		chLatex.DrawLatex(tagPosX, tagPosY, flvString)
 		chLatex.DrawLatex(tagPosX, tagPosY-0.06, tagString)
 
-		if drawQCD: leg = rt.TLegend(0.45,0.64,0.93,0.87)
-		if not drawQCD or blind: leg = rt.TLegend(0.45,0.64,0.93,0.89)
+		leg = rt.TLegend(0.42,0.54,0.9,0.87)
 		rt.SetOwnership( leg, 0 )   # 0 = release (not keep), 1 = keep
 		leg.SetShadowColor(0)
 		leg.SetFillColor(0)
@@ -497,6 +509,13 @@ for tag in tagList:
 		for proc in reversed(bkgProcList):
 			try: leg.AddEntry(bkghists[proc+catStr],proclegs[proc],"f")
 			except: continue
+			countlegs+=1
+			try: leg.AddEntry(sighists[sigs[ind]+catStr],siglegs[sigs[ind]]+scaleFactStrs[sigs[ind]],"l")
+			except: continue
+			countlegs+=1
+			ind+=1
+		while ind<len(sigs):
+			leg.AddEntry(0, "", "")
 			countlegs+=1
 			try: leg.AddEntry(sighists[sigs[ind]+catStr],siglegs[sigs[ind]]+scaleFactStrs[sigs[ind]],"l")
 			except: continue
@@ -711,8 +730,10 @@ for tag in tagList:
 		errorStatOnly = bkgHTmerged.GetBinError(ibin)**2
 		errorNorm = 0.
 		for proc in bkgProcList:
-			try: errorNorm += getNormUnc(bkghistsmerged[proc+'isL'+tagStr],ibin,0.0)
-			except: pass
+			try: errorNorm += getNormUnc(bkghistsmerged[proc+'isL'+tagStr],ibin,modelingSys[proc])
+			except Exception as e: 
+				print '===>>> WARNING! Exception occurred on line '+str(sys.exc_info()[-1].tb_lineno)+'. Passing ...'
+				pass
 
 		if doAllSys:
 			q2list=[]
@@ -914,9 +935,7 @@ for tag in tagList:
 	chLatexmerged.DrawLatex(tagPosX, tagPosY, flvString)
 	chLatexmerged.DrawLatex(tagPosX, tagPosY-0.06, tagString)
 
-	if drawQCDmerged: legmerged = rt.TLegend(0.45,0.64,0.93,0.87)
-	if not drawQCDmerged or blind: legmerged = rt.TLegend(0.45,0.64,0.93,0.89)
-	#if 'Tau32' in iPlot: legmerged = rt.TLegend(0.3,0.52,0.8,0.87)
+	legmerged = rt.TLegend(0.42,0.54,0.9,0.87)
 	rt.SetOwnership( legmerged, 0 )   # 0 = release (not keep), 1 = keep
 	legmerged.SetShadowColor(0)
 	legmerged.SetFillColor(0)
@@ -943,6 +962,13 @@ for tag in tagList:
 	for proc in reversed(bkgProcList):
 		try: legmerged.AddEntry(bkghistsmerged[proc+'isL'+tagStr],proclegs[proc],"f")
 		except: continue
+		countlegs+=1
+		try: legmerged.AddEntry(sighistsmerged[sigs[ind]+'isL'+tagStr],siglegs[sigs[ind]]+scaleFactStrs[sigs[ind]],"l")
+		except: continue
+		countlegs+=1
+		ind+=1
+	while ind<len(sigs):
+		legmerged.AddEntry(0, "", "")
 		countlegs+=1
 		try: legmerged.AddEntry(sighistsmerged[sigs[ind]+'isL'+tagStr],siglegs[sigs[ind]]+scaleFactStrs[sigs[ind]],"l")
 		except: continue

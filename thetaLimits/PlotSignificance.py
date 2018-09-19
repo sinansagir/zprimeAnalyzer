@@ -1,9 +1,8 @@
 #!/usr/bin/python
 
 import ROOT as rt
-from array import array
 import os,sys,math
-from math import *
+from array import array
 parent = os.path.dirname(os.getcwd())
 sys.path.append(parent)
 import CMS_lumi, tdrstyle
@@ -82,7 +81,7 @@ if( iPos==0 ): CMS_lumi.relPosX = 0.12
 H_ref = 600; 
 W_ref = 800; 
 W = W_ref
-H  = H_ref
+H = H_ref
 
 iPeriod = 0 #see CMS_lumi.py module for usage!
 
@@ -99,8 +98,9 @@ def PlotLimits(limitDir,limitFile,lumiStr,tempKey):
     print
     print 'mass'.ljust(ljust_i), 
     if not blind: 'observed'.ljust(ljust_i), 
-    print '-2 Sigma'.ljust(ljust_i), '-1 Sigma'.ljust(ljust_i), 'expected'.ljust(ljust_i), '+1 Sigma'.ljust(ljust_i), '+2 Sigma'.ljust(ljust_i)
-    print 'mass'.ljust(ljust_i), '3 Sigma Reach'.ljust(ljust_i), '5 Sigma Reach'.ljust(ljust_i)
+    print 'expected'.ljust(ljust_i), 
+    print '[-1 Sigma'.ljust(ljust_i), ', +1 Sigma'.ljust(ljust_i), '] [-2 Sigma'.ljust(ljust_i), ', +2 Sigma'.ljust(ljust_i),']'.ljust(ljust_i),
+    print '3 Sigma'.ljust(ljust_i), '5 Sigma'.ljust(ljust_i)
     
     limExpected = 2
     limObserved = 2
@@ -157,8 +157,9 @@ def PlotLimits(limitDir,limitFile,lumiStr,tempKey):
         round_i = 3
         print str(int(mass[i])).ljust(ljust_i), 
         if not blind: print '& '+str(round(obs[i],round_i)).ljust(ljust_i), 
-        print '& '+str(round(exp95L[i],round_i)).ljust(ljust_i), '& '+str(round(exp68L[i],round_i)).ljust(ljust_i), '& '+str(round(exp[i],round_i)).ljust(ljust_i), '& '+str(round(exp68H[i],round_i)).ljust(ljust_i), '& '+str(round(exp95H[i],round_i)).ljust(ljust_i)+' \\\\'
-        print str(int(mass[i])).ljust(ljust_i), '& '+str(round(sigma3[i],round_i)).ljust(ljust_i), '& '+str(round(sigma5[i],round_i)).ljust(ljust_i)+' \\\\'
+        print '& '+str(round(exp[i],round_i)).ljust(ljust_i), 
+        print '& ['+str(round(exp[i]-exp68L[i],round_i)).ljust(ljust_i)+', '+str(round(exp[i]+exp68H[i],round_i)).ljust(ljust_i)+'] & ['+str(round(exp[i]-exp95L[i],round_i)).ljust(ljust_i)+', '+str(round(exp[i]+exp95H[i],round_i)).ljust(ljust_i)+'] & ',
+        print str(round(sigma3[i],round_i)).ljust(ljust_i), ' & '+str(round(sigma5[i],round_i)).ljust(ljust_i)+' \\\\'
     print
     signExp = "="
     signObs = "="
@@ -220,8 +221,8 @@ def PlotLimits(limitDir,limitFile,lumiStr,tempKey):
     #canvas.SetTicky(0)
     canvas.SetLogy()
 
-    XaxisTitle = "g^{RS}_{KK} mass [TeV]"
-    YaxisTitle = "#sigma(g^{RS}_{KK}) [pb]"
+    XaxisTitle = "RSG mass [TeV]"
+    YaxisTitle = "#sigma(RSG #rightarrow t#bar{t}) [pb]"
 
     if plotLimits:
 		expected95.Draw("a3")
@@ -284,7 +285,7 @@ def PlotLimits(limitDir,limitFile,lumiStr,tempKey):
     frame.Draw()
 
     folder = '.'
-    outDir=folder+'/'+limitDir.split('/')[-3]+'plots'
+    outDir=folder+'/'+limitDir.split('/')[-3][:-5]+'plots'
     if not os.path.exists(outDir): os.system('mkdir '+outDir)
     plotName = 'SignificancePlot_'+histPrefix+binning+saveKey+'_'+tempKey
     if blind: plotName+='_blind'
@@ -294,19 +295,20 @@ def PlotLimits(limitDir,limitFile,lumiStr,tempKey):
     return round(limExpected,2), round(limObserved,2)
 
 iPlotList=['zpMass']
-tempKeys = ['btagcats','nobtagcats']#,'ttagcats','nottagcats']
+tempKeys = ['btagcats','nobtagcats']
+#tempKeys = ['all']
 cutString=''
 dirs = {
-		'Zp20180812_100GeVbinsDRgt1':'templates_DRgt1_zpMass_2018_8_12',
-		'Zp20180812_17017fullsel':'templates_17017fullsel_zpMass_2018_8_12',
-		'Zp20180812_17017fullselDRgt1':'templates_17017fullselDRgt1_zpMass_2018_8_12_disc',
-		'Zp20180814':'templates_zpMass_2018_8_14_disc',
-		'Zp20180814noRFonsig':'templates_zpMass_2018_8_14_noRFonsig_disc',
-		'Zp20180817':'templates_zpMass_2018_8_17_disc',
-		'Zp20180817ttinc':'templates_ttinc_zpMass_2018_8_17_disc',
-		'Zp20180823':'templates_zpMass_2018_8_23_disc',
+		'Zp20180823':'templates_zpMass_2018_8_23_lim',
+		'Zp20180824alljets':'templates_alljets_2018_8_24_lim',
+		'Zp20180829':'templates_zpMass_2018_8_29_lim',
+		'Zp201808292':'templates_zpMass_2018_8_29_2_disc',
+		'Zp201808292alljets':'templates_alljets_2018_9_11_2_disc',
+		'Zp20180829Sept15':'templates_zpMass_2018_8_29_15Sept_disc',
+		'Zp20180829Sept15alljets':'templates_alljets_2018_9_11_15Sept_disc',
+		'Zp20180829mergeprocs':'templates_zpMass_mergeprocs_2018_8_29_disc',
 		}
-dirKeyList = ['Zp20180823']#,'Zp20180817ttinc']
+dirKeyList = ['Zp20180829mergeprocs']
 binnings = ['1p1']
 
 expLims = {}
@@ -319,6 +321,7 @@ for lumiStr in lumiStrs.keys():
 			obsLims[dirKey+discriminant+lumiStr] = {}
 			for binning_ in binnings:
 				binning='_rebinned_stat'+binning_
+				if len(binning_)==0: binning=''
 				expLims[dirKey+discriminant+lumiStr][binning_] = []
 				obsLims[dirKey+discriminant+lumiStr][binning_] = []
 				for tempKey in tempKeys:

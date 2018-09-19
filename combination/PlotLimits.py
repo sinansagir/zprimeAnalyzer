@@ -230,7 +230,7 @@ def PlotLimits(limitDir,limitFile,lumiStr,tempKey):
     frame.Draw()
 
     folder = '.'
-    outDir=folder+'/'+limitDir.split('/')[-3]+'plots'
+    outDir=folder+'/'+limitDir.split('/')[-3][:-4]+'plots'
     if not os.path.exists(outDir): os.system('mkdir '+outDir)
     plotName = 'LimitPlot_'+histPrefix+''+binning+saveKey+'_'+tempKey
     if blind: plotName+='_blind'
@@ -243,16 +243,22 @@ iPlotList=['zpMass']
 tempKeys = ['btagcats','nobtagcats']
 cutString=''
 dirs = {
-		'Zp20180812_17017fullsel':'templates_17017fullsel_zpMass_2018_8_12',
-		'Zp20180812_17017fullselDRgt1':'templates_17017fullselDRgt1_zpMass_2018_8_12_lim',
-		'Zp20180814':'templates_zpMass_2018_8_14_lim',
-		'Zp20180817':'templates_zpMass_2018_8_17_lim',
 		'Zp20180823':'templates_zpMass_2018_8_23_lim',
 		'Zp20180823combo':'templates_zpMass_2018_8_23_combination_lim',
 		'Zp20180829':'templates_zpMass_2018_8_29_lim',
 		'Zp20180829combo':'templates_zpMass_2018_8_29_combination_lim',
+		'Zp20180829combo2':'templates_zpMass_2018_8_29_combination2_lim',
+		'Zp20180829combo3':'templates_zpMass_2018_8_29_combination3_lim',
+		'Zp20180829combo4':'templates_zpMass_2018_8_29_combination4_lim',
+		'Zp20180829combo5':'templates_zpMass_2018_8_29_combination5_lim',
+		'Zp20180829combo6':'templates_zpMass_2018_8_29_combination6_lim',
+		'Zp20180829combo7':'templates_zpMass_2018_8_29_combination7_lim',
+		'Zp20180829combo8':'templates_zpMass_2018_8_29_combination8_lim',
+		'Zp20180829combo9':'templates_zpMass_2018_8_29_combination9_lim',
+		'Zp20180829comboSept15':'templates_zpMass_2018_8_29_comb_15Sept_lim',
+		'Zp20180829mergeprocscomb':'templates_zpMass_mergeprocs_2018_8_29_comb_lim',
 		}
-dirKeyList = ['Zp20180829combo']
+dirKeyList = ['Zp20180829mergeprocscomb']
 binnings = ['1p1']
 
 expLims = {}

@@ -1,8 +1,12 @@
 #!/usr/bin/python
 
+import os,sys,pickle
+
 input = 'dummy.root'
 
 rFileName = input.split('/')[-1].replace('.root','')
+
+thisDir = os.getcwd()
 
 def getNSigmaCrossSecMin(model, N=5, errorMax=0.001):
 	outFile=open(rFileName+'_'+str(N)+'sigmaSignif.txt','w')
@@ -54,7 +58,7 @@ def getNSigmaCrossSecMin(model, N=5, errorMax=0.001):
 ##################################################################################################################
 
 def get_model():
-	model = build_model_from_rootfile(input,include_mc_uncertainties=False)#,histogram_filter = (lambda s: s.count('jec')==0 and s.count('jer')==0)
+	model = build_model_from_rootfile(inputSL,include_mc_uncertainties=False)#,histogram_filter = (lambda s: s.count('jec')==0 and s.count('jer')==0)
 	
 	model.fill_histogram_zerobins()
 	model.set_signal_processes('sig')
@@ -71,31 +75,30 @@ def get_model():
 			except: pass
 	try: model.add_lognormal_uncertainty('lumi', math.log(1.01), '*', '*')
 	except: pass
-	try: model.add_lognormal_uncertainty('pileup', math.log(1.03), '*', '*')
-	except: pass
 	try: model.add_lognormal_uncertainty('jec', math.log(1.035), '*', '*')
 	except: pass
 	try: model.add_lognormal_uncertainty('jer', math.log(1.03), '*', '*')
 	except: pass
-	try: model.add_lognormal_uncertainty('btag', math.log(1.10), '*', '*')
-	except: pass
-	try: model.add_lognormal_uncertainty('ttag', math.log(1.10), '*', '*')
+	if 'nobtagcats' not in thisDir:
+		try: model.add_lognormal_uncertainty('btag', math.log(1.05), '*', '*')
+		except: pass
+	try: model.add_lognormal_uncertainty('ttag', math.log(1.05), '*', '*')
 	except: pass
 	try: model.add_lognormal_uncertainty('pdf', math.log(1.024), '*', '*')
 	except: pass
-	try: model.add_lognormal_uncertainty('muRF', math.log(1.10), '*', '*')
-	except: pass
 	for proc in procs:
 		if proc=='ttbar':
-			try: model.add_lognormal_uncertainty('xsec_ttbar', math.log(1.03), proc, '*') #B2G-17-017-V9: 20%
+			try: model.add_lognormal_uncertainty('xsec_ttbar', math.log(1.03), proc, '*') #B2G-17-017-V9: 20%, scaled by lumi
 			except: pass
-			try: model.add_lognormal_uncertainty('toppt', math.log(1.06), proc, '*')
+			try: model.add_lognormal_uncertainty('muRF_ttbar', math.log(1.04), proc, '*')
 			except: pass
 		elif proc=='sitop':
 			try: model.add_lognormal_uncertainty('xsec_sitop', math.log(1.06), proc, '*') #B2G-17-017-V9: 50%, scaled by lumi
 			except: pass
 		elif proc=='wjets':
 			try: model.add_lognormal_uncertainty('xsec_wjets', math.log(1.03), proc, '*') #B2G-17-017-V9: 25%, scaled by lumi
+			except: pass
+			try: model.add_lognormal_uncertainty('muRF_wjets', math.log(1.03), proc, '*')
 			except: pass
 		elif proc=='zjets':
 			try: model.add_lognormal_uncertainty('xsec_zjets', math.log(1.06), proc, '*') #B2G-17-017-V9: 50%, scaled by lumi
@@ -105,6 +108,9 @@ def get_model():
 			except: pass
 		elif proc=='qcd':
 			try: model.add_lognormal_uncertainty('xsec_qcd', math.log(1.06), proc, '*') #B2G-17-017-V9: 50%, scaled by lumi
+			except: pass
+		elif proc=='other':
+			try: model.add_lognormal_uncertainty('xsec_other', math.log(1.12), proc, '*') #B2G-17-017-V9: 50%, scaled by lumi
 			except: pass
 			
 	return model
@@ -118,7 +124,7 @@ def get_model_statOnly():
 	return model
 
 def get_model_2xSyst():
-	model = build_model_from_rootfile(input,include_mc_uncertainties=False)#,histogram_filter = (lambda s: s.count('jec')==0 and s.count('jer')==0)
+	model = build_model_from_rootfile(inputSL,include_mc_uncertainties=False)#,histogram_filter = (lambda s: s.count('jec')==0 and s.count('jer')==0)
 	
 	model.fill_histogram_zerobins()
 	model.set_signal_processes('sig')
@@ -135,31 +141,30 @@ def get_model_2xSyst():
 			except: pass
 	try: model.add_lognormal_uncertainty('lumi', math.log(1.02), '*', '*')
 	except: pass
-	try: model.add_lognormal_uncertainty('pileup', math.log(1.06), '*', '*')
-	except: pass
 	try: model.add_lognormal_uncertainty('jec', math.log(1.07), '*', '*')
 	except: pass
 	try: model.add_lognormal_uncertainty('jer', math.log(1.06), '*', '*')
 	except: pass
-	try: model.add_lognormal_uncertainty('btag', math.log(1.20), '*', '*')
-	except: pass
-	try: model.add_lognormal_uncertainty('ttag', math.log(1.20), '*', '*')
+	if 'nobtagcats' not in thisDir:
+		try: model.add_lognormal_uncertainty('btag', math.log(1.10), '*', '*')
+		except: pass
+	try: model.add_lognormal_uncertainty('ttag', math.log(1.10), '*', '*')
 	except: pass
 	try: model.add_lognormal_uncertainty('pdf', math.log(1.048), '*', '*')
 	except: pass
-	try: model.add_lognormal_uncertainty('muRF', math.log(1.20), '*', '*')
-	except: pass
 	for proc in procs:
 		if proc=='ttbar':
-			try: model.add_lognormal_uncertainty('xsec_ttbar', math.log(1.06), proc, '*') #B2G-17-017-V9: 20%
+			try: model.add_lognormal_uncertainty('xsec_ttbar', math.log(1.06), proc, '*') #B2G-17-017-V9: 20%, scaled by lumi
 			except: pass
-			try: model.add_lognormal_uncertainty('toppt', math.log(1.12), proc, '*')
+			try: model.add_lognormal_uncertainty('muRF_ttbar', math.log(1.08), proc, '*')
 			except: pass
 		elif proc=='sitop':
 			try: model.add_lognormal_uncertainty('xsec_sitop', math.log(1.12), proc, '*') #B2G-17-017-V9: 50%, scaled by lumi
 			except: pass
 		elif proc=='wjets':
 			try: model.add_lognormal_uncertainty('xsec_wjets', math.log(1.06), proc, '*') #B2G-17-017-V9: 25%, scaled by lumi
+			except: pass
+			try: model.add_lognormal_uncertainty('muRF_wjets', math.log(1.06), proc, '*')
 			except: pass
 		elif proc=='zjets':
 			try: model.add_lognormal_uncertainty('xsec_zjets', math.log(1.12), proc, '*') #B2G-17-017-V9: 50%, scaled by lumi
@@ -169,6 +174,9 @@ def get_model_2xSyst():
 			except: pass
 		elif proc=='qcd':
 			try: model.add_lognormal_uncertainty('xsec_qcd', math.log(1.12), proc, '*') #B2G-17-017-V9: 50%, scaled by lumi
+			except: pass
+		elif proc=='other':
+			try: model.add_lognormal_uncertainty('xsec_other', math.log(1.24), proc, '*') #B2G-17-017-V9: 50%, scaled by lumi
 			except: pass
 			
 	return model
@@ -181,13 +189,83 @@ model_summary(model)
 
 doLimits = True
 if doLimits:
-	#plot_exp, plot_obs = bayesian_limits(model,'all', n_toy = 100000, n_data = 1000)
-	plot_exp, plot_obs = bayesian_limits(model,'expected', n_toy = 5000, n_data = 500)
+	#plot_exp, plot_obs = bayesian_limits(model,'expected', n_toy = 100000, n_data = 1000, run_theta = 'True')
+	plot_exp, plot_obs = bayesian_limits(model,'expected', n_toy = 5000, n_data = 500, run_theta = 'True')
 	plot_exp.write_txt('limits_'+rFileName+'_expected.txt')
-	#plot_obs.write_txt('limits_'+rFileName+'_observed.txt')
 else: #N sigma discovery reaches (NOTE that this implementation currently works only with utils/theta-auto.py, check if this is OK or if it can be implemented in utils2 easily!!!)
 	getNSigmaCrossSecMin(model,5,0.01)
 	getNSigmaCrossSecMin(model,3,0.01)
 
 #report.write_html('htmlout_'+rFileName)
 
+doPostfit=True
+if doLimits and doPostfit:
+	options = Options()
+	options.set('minimizer', 'strategy', 'robust')
+	options.set('minimizer', 'minuit_tolerance_factor', '100000')
+	parVals = mle(model, input='toys:0.0', n=1, with_error=True, with_covariance=True, options = options)
+
+	parameter_values = {}
+	for syst in parVals['sig'].keys():
+		if syst=='__nll' or syst=='__cov': continue
+		else:
+			print syst,"=",parVals['sig'][syst][0][0],"+/-",parVals['sig'][syst][0][1]
+			parameter_values[syst] = parVals['sig'][syst][0][0]
+
+	pickle.dump(parVals,open(rFileName+'.p','wb'))
+
+	histos = evaluate_prediction(model, parameter_values, include_signal=False)
+	write_histograms_to_rootfile(histos, 'histos-mle_'+rFileName+'.root')
+
+	from numpy import linalg
+	import numpy as np
+
+	theta_res = parVals['sig']
+	param_list = []
+	for k, res in theta_res.iteritems():
+		#print k,',',res
+		if any(k == i for i in ['__nll','__cov']): continue
+		err_sq = res[0][1]*res[0][1]
+		param_list.append((k, err_sq))
+
+	cov_matrix = theta_res['__cov'][0]
+	ind_dict = {}
+	for i in xrange(cov_matrix.shape[0]):
+		for ii in xrange(cov_matrix.shape[1]):
+			entry = cov_matrix[i,ii]
+			for proc, val in param_list:
+				if abs(val-entry) < 1e-9:
+					if i != ii:
+						print "WARNING row and column index don't match"
+					ind_dict[i] = proc
+				if i not in ind_dict.keys():
+					ind_dict[i] = 'beta_signal'
+
+	cov_matrix = np.matrix(cov_matrix)
+	diag_matrix = np.matrix(np.sqrt(np.diag(np.diag(cov_matrix))))
+
+	inv_matrix = diag_matrix.I
+	corr_matrix = inv_matrix * cov_matrix * inv_matrix
+
+	corr_hist = ROOT.TH2D("correlation_matrix","",len(param_list),0,len(param_list),len(param_list),0,len(param_list))
+	cov_hist = ROOT.TH2D("covariance_matrix","",len(param_list),0,len(param_list),len(param_list),0,len(param_list))
+	
+	for i in xrange(corr_matrix.shape[0]):
+		if i not in ind_dict.keys(): continue
+		corr_hist.GetXaxis().SetBinLabel(i+1, ind_dict.get(i,'unknown'))
+		corr_hist.GetYaxis().SetBinLabel(i+1, ind_dict.get(i,'unknown'))
+		cov_hist.GetXaxis().SetBinLabel(i+1, ind_dict.get(i,'unknown'))
+		cov_hist.GetYaxis().SetBinLabel(i+1, ind_dict.get(i,'unknown'))
+		corr_hist.SetLabelSize(0.03,'x')
+		cov_hist.SetLabelSize(0.03,'x')
+		corr_hist.GetZaxis().SetRangeUser(-1,1)
+		for ii in xrange(corr_matrix.shape[1]):
+			entry_corr = corr_matrix[i,ii]
+			entry_cov = cov_matrix[i,ii]
+			corr_hist.Fill(i,ii,entry_corr)
+			cov_hist.Fill(i,ii,entry_cov)
+
+	matrices = ROOT.TFile('mle_covcorr_'+rFileName+'.root','RECREATE')
+	cov_hist.Write()
+	corr_hist.Write()
+	matrices.Close()
