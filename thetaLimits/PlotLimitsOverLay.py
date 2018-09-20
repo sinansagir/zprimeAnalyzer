@@ -120,8 +120,8 @@ R = 0.04*W_ref
 
 xrange_min=mass[0]
 xrange_max=mass[-1]
-yrange_min=.001+.00001
-yrange_max=10.45
+yrange_min=.0008
+yrange_max=8.0
 
 observed = {}
 expected = {}

@@ -238,7 +238,7 @@ def PlotLimits(limitDir,limitFile,lumiStr,tempKey):
 		sigma3gr.Draw("same")
     else:
 		sigma3gr.Draw("AL")
-		sigma3gr.GetYaxis().SetRangeUser(.001+.00001,10.45)
+		sigma3gr.GetYaxis().SetRangeUser(.0008,8.0)
 		sigma3gr.GetXaxis().SetRangeUser(mass[0],mass[-1])
 		sigma3gr.GetXaxis().SetTitle(XaxisTitle)
 		sigma3gr.GetXaxis().SetTitleOffset(1)
@@ -294,22 +294,28 @@ def PlotLimits(limitDir,limitFile,lumiStr,tempKey):
     canvas.SaveAs(outDir+'/'+plotName+'.png')
     return round(limExpected,2), round(limObserved,2)
 
+doCLS='_cls'
 iPlotList=['zpMass']
+binnings = ['1p1']
 tempKeys = ['btagcats','nobtagcats']
 #tempKeys = ['all']
 cutString=''
 dirs = {
-		'Zp20180823':'templates_zpMass_2018_8_23_lim',
-		'Zp20180824alljets':'templates_alljets_2018_8_24_lim',
-		'Zp20180829':'templates_zpMass_2018_8_29_lim',
+		'Zp20180823':'templates_zpMass_2018_8_23_disc',
+		'Zp20180823combo':'templates_zpMass_2018_8_23_combination_disc',
+		'Zp20180824alljets':'templates_alljets_2018_8_24_disc',
+		'Zp20180829':'templates_zpMass_2018_8_29_disc',
+		'Zp20180829combo':'templates_zpMass_2018_8_29_combination_disc',
 		'Zp201808292':'templates_zpMass_2018_8_29_2_disc',
 		'Zp201808292alljets':'templates_alljets_2018_9_11_2_disc',
+		'Zp20180829combo2':'templates_zpMass_2018_8_29_combination2_disc',
 		'Zp20180829Sept15':'templates_zpMass_2018_8_29_15Sept_disc',
 		'Zp20180829Sept15alljets':'templates_alljets_2018_9_11_15Sept_disc',
+		'Zp20180829comboSept15':'templates_zpMass_2018_8_29_comb_15Sept_disc',
 		'Zp20180829mergeprocs':'templates_zpMass_mergeprocs_2018_8_29_disc',
+		'Zp20180829mergeprocscomb':'templates_zpMass_mergeprocs_2018_8_29_comb_disc',
 		}
 dirKeyList = ['Zp20180829mergeprocs']
-binnings = ['1p1']
 
 expLims = {}
 obsLims = {}
@@ -326,9 +332,9 @@ for lumiStr in lumiStrs.keys():
 				obsLims[dirKey+discriminant+lumiStr][binning_] = []
 				for tempKey in tempKeys:
 					limitDir='/user_data/ssagir/Zprime_limits_2018/'+dir+'/'+tempKey+'/'
-					limitFile='/limits_templates_'+discriminant+'_'+signal+'M2000'+'_'+lumiStr+'fbinv'+binning+'_expected.txt'	
+					limitFile='/limits_templates_'+discriminant+'_'+signal+'M2000'+'_'+lumiStr+'fbinv'+binning+doCLS+'_expected.txt'	
 					print limitDir+cutString+limitFile
-					expTemp,obsTemp = PlotLimits(limitDir,limitFile,lumiStr,tempKey)
+					expTemp,obsTemp = PlotLimits(limitDir,limitFile,lumiStr,tempKey+doCLS)
 					expLims[dirKey+discriminant+lumiStr][binning_].append(expTemp)
 					obsLims[dirKey+discriminant+lumiStr][binning_].append(obsTemp)
 
