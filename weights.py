@@ -1,6 +1,5 @@
 #!/usr/bin/python
 
-#targetlumi = 35867. # 1/pb
 targetlumi = 300000. # 1/pb
 
 # Number of processed MC events (before selections)
@@ -12,7 +11,8 @@ nRun['ZpM5000'] = 399989. #N_gen=400k
 nRun['ZpM6000'] = 399987. #N_gen=400k
 
 filterEffTTbar = 0.0246 #21.27/864.4
-nRun['TTinc'] = 269205951 #N_gen=270M (original~50M+ext1~220M) # there seems to be a duplication of events that is being checked!!!
+#nRun['TTinc'] = 269205951 #N_gen=270M (original~50M+ext1~220M) # there seems to be some repeated events that are being checked!!!
+nRun['TTinc'] = 264263150 #N_gen after files with repeated events are excluded
 nRun['TTmtt0to1000inc'] = nRun['TTinc']
 nRun['TTmtt1000toInfinc'] = nRun['TTinc']*filterEffTTbar+12769661. #N_gen=12,770,210
 nRun['TTmtt1000toInf'] = nRun['TTmtt1000toInfinc']#12769661.
@@ -83,19 +83,21 @@ xsec['DyHT800to1200'] = 0.3852*1.23
 xsec['DyHT1200to2500'] = 0.08874*1.23
 xsec['DyHT2500toInf'] = 0.001755*1.23
 
-xsec['WW'] = 3.423
-    
-xsec['QCDPt50to80'] = 21870000. #from https://docs.google.com/spreadsheets/d/1Oz8rWBoPJInKoy4_QyT0BArO9VnMe7AeyikUE09h2O0/edit#gid=0
-xsec['QCDPt80to120'] = 3063000. #from https://docs.google.com/spreadsheets/d/1Oz8rWBoPJInKoy4_QyT0BArO9VnMe7AeyikUE09h2O0/edit#gid=0
-xsec['QCDPt120to170'] = 541100. #from https://docs.google.com/spreadsheets/d/1Oz8rWBoPJInKoy4_QyT0BArO9VnMe7AeyikUE09h2O0/edit#gid=0
-xsec['QCDPt170to300'] = 137100. #from https://docs.google.com/spreadsheets/d/1Oz8rWBoPJInKoy4_QyT0BArO9VnMe7AeyikUE09h2O0/edit#gid=0
-xsec['QCDPt300to470'] = 9325. #from https://docs.google.com/spreadsheets/d/1Oz8rWBoPJInKoy4_QyT0BArO9VnMe7AeyikUE09h2O0/edit#gid=0
-xsec['QCDPt470to600'] = 809.7 #from https://docs.google.com/spreadsheets/d/1Oz8rWBoPJInKoy4_QyT0BArO9VnMe7AeyikUE09h2O0/edit#gid=0
-xsec['QCDPt600to800'] = 231.8 #from https://docs.google.com/spreadsheets/d/1Oz8rWBoPJInKoy4_QyT0BArO9VnMe7AeyikUE09h2O0/edit#gid=0
-xsec['QCDPt800to1000'] = 42.51 #from https://docs.google.com/spreadsheets/d/1Oz8rWBoPJInKoy4_QyT0BArO9VnMe7AeyikUE09h2O0/edit#gid=0
-xsec['QCDPt1000toInf'] = 14.08 #from https://docs.google.com/spreadsheets/d/1Oz8rWBoPJInKoy4_QyT0BArO9VnMe7AeyikUE09h2O0/edit#gid=0
+xsec['WW'] = 131. #NNLO (arXiv:1408.5243) from https://docs.google.com/spreadsheets/d/1Oz8rWBoPJInKoy4_QyT0BArO9VnMe7AeyikUE09h2O0/edit#gid=0
 
-xsec['QCDPt15to7000'] = 2190000000.
+# 14TeV x-secs are scaled by an efficiency factor calculated from the comparison of filtering efficiencies between 13TeV and 14TeV samples -- form Christoph Schuler
+# These are taken from https://twiki.cern.ch/twiki/bin/viewauth/CMS/SummaryTable1G25ns#QCD    
+xsec['QCDPt50to80'] = 21870000.*0.02276 #from https://docs.google.com/spreadsheets/d/1Oz8rWBoPJInKoy4_QyT0BArO9VnMe7AeyikUE09h2O0/edit#gid=0
+xsec['QCDPt80to120'] = 3063000.*0.03844 #from https://docs.google.com/spreadsheets/d/1Oz8rWBoPJInKoy4_QyT0BArO9VnMe7AeyikUE09h2O0/edit#gid=0
+xsec['QCDPt120to170'] = 541100.*0.05362 #from https://docs.google.com/spreadsheets/d/1Oz8rWBoPJInKoy4_QyT0BArO9VnMe7AeyikUE09h2O0/edit#gid=0
+xsec['QCDPt170to300'] = 137100.*0.07335 #from https://docs.google.com/spreadsheets/d/1Oz8rWBoPJInKoy4_QyT0BArO9VnMe7AeyikUE09h2O0/edit#gid=0
+xsec['QCDPt300to470'] = 9325.*0.10196 #from https://docs.google.com/spreadsheets/d/1Oz8rWBoPJInKoy4_QyT0BArO9VnMe7AeyikUE09h2O0/edit#gid=0
+xsec['QCDPt470to600'] = 809.7*0.12242 #from https://docs.google.com/spreadsheets/d/1Oz8rWBoPJInKoy4_QyT0BArO9VnMe7AeyikUE09h2O0/edit#gid=0
+xsec['QCDPt600to800'] = 231.8*0.13412 #from https://docs.google.com/spreadsheets/d/1Oz8rWBoPJInKoy4_QyT0BArO9VnMe7AeyikUE09h2O0/edit#gid=0
+xsec['QCDPt800to1000'] = 42.51*0.14552 #from https://docs.google.com/spreadsheets/d/1Oz8rWBoPJInKoy4_QyT0BArO9VnMe7AeyikUE09h2O0/edit#gid=0
+xsec['QCDPt1000toInf'] = 14.08*0.15544 #from https://docs.google.com/spreadsheets/d/1Oz8rWBoPJInKoy4_QyT0BArO9VnMe7AeyikUE09h2O0/edit#gid=0
+ 
+xsec['QCDPt15to7000'] = 2190000000. # filtering efficiency taken from https://twiki.cern.ch/twiki/bin/viewauth/CMS/SummaryTable1G25ns#QCD, it doesn't exactly correspond to this samples, but a rough estimate for the time being!
 xsec['QCDflatPt15to7000'] = 2207000000.
 xsec['QCDmjj0to1000inc'] = xsec['QCDflatPt15to7000']
 xsec['QCDmjj1000toInfinc'] = 1174. #(xsec*filtering coeff.) from McM

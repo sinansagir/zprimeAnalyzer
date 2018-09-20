@@ -29,10 +29,10 @@ start_time = time.time()
 #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 iPlot='zpMass'
-lumi='3000p0fbinv'
+lumi='36p0fbinv'
 if len(sys.argv)>1: iPlot=str(sys.argv[1])
-cutString = ''#'lep30_MET150_NJets4_DR1_1jet450_2jet150'
-templateDir = os.getcwd()+'/templates_zpMass_2018_8_27/'+cutString
+cutString = ''
+templateDir = os.getcwd()+'/templates_zpMass_mergeprocs_2018_8_29/'+cutString
 combinefile = 'templates_'+iPlot+'_'+lumi+'.root'
 
 quiet = True #if you don't want to see the warnings that are mostly from the stat. shape algorithm!
@@ -45,7 +45,9 @@ sigName = 'Zp' #MAKE SURE THIS WORKS FOR YOUR ANALYSIS PROPERLY!!!!!!!!!!!
 massList = range(2000,6000+1,1000)
 if 'kinematics_PS' in templateDir: massList = [1000,1300]
 sigProcList = [sigName+'M'+str(mass) for mass in massList]
-bkgProcList = ['ttbar','sitop','wjets','zjets','dibos','qcd'] #put the most dominant process first
+#bkgProcList = ['ttbar','sitop','wjets','zjets','dibos','qcd'] #put the most dominant process first
+#bkgProcList = ['top','ewk','qcd'] #put the most dominant process first
+bkgProcList = ['ttbar','other']
 era = "13TeV"
 
 minNbins=2 #min number of bins to be merged
@@ -68,16 +70,28 @@ else: #theta
 	downTag = '__minus'
 
 addShapes = False
-lumiSys = 0.0#25 #lumi uncertainty
-eltrigSys = 0.0 #electron trigger uncertainty
-mutrigSys = 0.0 #muon trigger uncertainty
-elIdSys = 0.0 #electron id uncertainty
-muIdSys = 0.0 #muon id uncertainty
-elIsoSys = 0.0 #electron isolation uncertainty
-muIsoSys = 0.0 #muon isolation uncertainty
-htRwtSys = 0.#15
-elcorrdSys = math.sqrt(lumiSys**2+eltrigSys**2+elIdSys**2+elIsoSys**2+htRwtSys**2)
-mucorrdSys = math.sqrt(lumiSys**2+mutrigSys**2+muIdSys**2+muIsoSys**2+htRwtSys**2)
+lumiSys = 0.01 #lumi uncertainty
+elIdIsoSys = 0.01 #electron id/iso uncertainty
+muIdIsoSys = 0.005 #muon id/iso uncertainty
+jesSys = 0.035 #JES uncertainty
+jerSys = 0.03 #JER uncertainty
+btagSys = 0.0#5 #b-tagging uncertainty
+ttagSys = 0.05 #t-tagging uncertainty
+puSys = 0.0#3 #Pileup uncertainty
+pdfSys = 0.024 #PDF uncertainty
+murfSys = 0.0 #Renorm/Fact. scale uncertainty
+elcorrdSys = math.sqrt(lumiSys**2+elIdIsoSys**2+jesSys**2+jerSys**2+btagSys**2+ttagSys**2+puSys**2+pdfSys**2+murfSys**2)
+mucorrdSys = math.sqrt(lumiSys**2+muIdIsoSys**2+jesSys**2+jerSys**2+btagSys**2+ttagSys**2+puSys**2+pdfSys**2+murfSys**2)
+
+modelingSys = {}
+modelingSys['ttbar'] = math.sqrt(0.03**2+0.04**2) #ttbar x-sec and muRF uncertainty
+modelingSys['sitop'] = 0.06 #Single top x-sec uncertainty
+modelingSys['wjets'] = math.sqrt(0.03**2+0.03**2) #W+jets x-sec and muRF uncertainty
+modelingSys['zjets'] = 0.06 #Z+jets x-sec uncertainty
+modelingSys['dibos'] = 0.06 #Diboson x-sec uncertainty
+modelingSys['qcd']   = 0.06 #QCD x-sec uncertainty
+modelingSys['other'] = math.sqrt(modelingSys['sitop']**2+modelingSys['wjets']**2+modelingSys['zjets']**2+modelingSys['dibos']**2+modelingSys['qcd']**2)
+modelingSys[dataName]= 0.0
 
 removalKeys = {} # True == keep, False == remove
 removalKeys['jsf__'] = False
@@ -408,20 +422,21 @@ procNames={
            'top':'TOP',
            'ttbar':'TT',
            'sitop':'Single top',
-           'ewk':'EWK',
+           'ewk':'EW',
            'wjets':'W+jets',
            'zjets':'Z+jets',
            'dibos':'WW',
            'qcd':'QCD',
+           'other':'Other',
            'DATA':'Data',
            'data_obs':'Data',
-           'totBkg':'Total bkg',
+           'totBkg':'Total bkg.',
            'dataOverBkg':'Data/Bkg',
            }
 for sig in sigProcList: 
 	if 'left' in sig:  procNames[sig]='LH \\xft ('+str(float(sig[7:-4])/1000)+' \\TeV)'
 	if 'right' in sig: procNames[sig]='RH \\xft ('+str(float(sig[7:-5])/1000)+' \\TeV)'
-	procNames[sig]='RS KK Gluon ('+str(float(sig[4:])/1000)+' \\TeV)'
+	procNames[sig]='RSG ('+str(float(sig[3:])/1000)+'\\TeV)'
 
 print "List of systematics for "+bkgProcList[0]+" process and "+channels[0]+" channel:"
 print "        ",sorted([hist[hist.find(bkgProcList[0]+'__')+len(bkgProcList[0])+2:hist.find(upTag)] for hist in yieldsAll.keys() if channels[0] in hist and '__'+bkgProcList[0]+'__' in hist and upTag in hist])# and 'muRF' not in hist
@@ -446,164 +461,166 @@ table = []
 for isEM in isEMlist:
 	if isEM=='isE': corrdSys = elcorrdSys
 	if isEM=='isM': corrdSys = mucorrdSys
-	for nttag in nttaglist:
-		table.append(['break'])
-		table.append(['',isEM+'_'+nttag+'_yields'])
-		table.append(['break'])
-		table.append(['YIELDS']+[chn for chn in channels if isEM in chn and nttag in chn]+['\\\\'])
-		for proc in bkgProcList+['totBkg',dataName,'dataOverBkg']+sigProcList:
-			row = [procNames[proc]]
-			for chn in channels:
-				if not (isEM in chn and nttag in chn): continue
-				modTag = chn[chn.find('nW'):]
-				histoPrefix = allhists[chn][0][:allhists[chn][0].find('__')+2]
-				yieldtemp = 0.
-				yielderrtemp = 0.
-				if proc=='totBkg' or proc=='dataOverBkg':
-					for bkg in bkgProcList:
-						try:
-							yieldtemp += yieldsAll[histoPrefix+bkg]
-							yielderrtemp += yieldsErrsAll[histoPrefix+bkg]**2
-							yielderrtemp += (getShapeSystUnc(bkg,chn)*yieldsAll[histoPrefix+bkg])**2
-						except:
-							print "Missing",bkg,"for channel:",chn
-							pass
-					yielderrtemp += (corrdSys*yieldtemp)**2
-					if proc=='dataOverBkg':
-						dataTemp = yieldsAll[histoPrefix+dataName]+1e-20
-						dataTempErr = yieldsErrsAll[histoPrefix+dataName]**2
-						yielderrtemp = ((dataTemp/yieldtemp)**2)*(dataTempErr/dataTemp**2+yielderrtemp/yieldtemp**2)
-						yieldtemp = dataTemp/yieldtemp
-				else:
-					try:
-						yieldtemp += yieldsAll[histoPrefix+proc]
-						yielderrtemp += yieldsErrsAll[histoPrefix+proc]**2
-						yielderrtemp += (getShapeSystUnc(proc,chn)*yieldsAll[histoPrefix+proc])**2
-					except:
-						print "Missing",proc,"for channel:",chn
-						pass
-					if proc in sigProcList:
-						signal=proc
-						if 'left' in signal: signal=proc.replace('left','')+'left'
-						if 'right' in signal: signal=proc.replace('right','')+'right'
-						yieldtemp*=xsec[signal]
-						yielderrtemp*=xsec[signal]**2
-					yielderrtemp += (corrdSys*yieldtemp)**2
-				yielderrtemp = math.sqrt(yielderrtemp)
-				if proc==dataName: row.append(' & '+str(int(yieldsAll[histoPrefix+proc])))
-				else: row.append(' & '+str(round_sig(yieldtemp,5))+' $\pm$ '+str(round_sig(yielderrtemp,2)))
-			row.append('\\\\')
-			table.append(row)
-		iSig = 0
-		for sig in sigProcList:
-			#row=['SoverSqrtSpB_'+sig]
-			row=['SoverSigmaB_'+sig]
-			iChn = 1
-			for chn in channels: 
-				if not (isEM in chn and nttag in chn): continue
-				bkgYld_ = float([iList for iList in table[table.index(['',isEM+'_'+nttag+'_yields']):] if iList[0] == procNames['totBkg']][0][iChn].strip().split()[1])
-				bkgYldErr_ = float([iList for iList in table[table.index(['',isEM+'_'+nttag+'_yields']):] if iList[0] == procNames['totBkg']][0][iChn].strip().split()[3])
-				sigYld_ = float([iList for iList in table[table.index(['',isEM+'_'+nttag+'_yields']):] if iList[0] == procNames[sig]][0][iChn].strip().split()[1])
-				sigYldErr_ = float([iList for iList in table[table.index(['',isEM+'_'+nttag+'_yields']):] if iList[0] == procNames[sig]][0][iChn].strip().split()[3])
-				#row.append(' & '+str(sigYld_/math.sqrt(sigYld_+bkgYld_)))
-				row.append(' & '+str(round_sig(sigYld_/bkgYldErr_,5)))
-				iChn+=1
-			row.append('\\\\')
-			table.append(row)
-			iSig+=1
-			
-for nttag in nttaglist:
 	table.append(['break'])
-	table.append(['','isL_'+nttag+'_yields'])
+	table.append(['',isEM+'_yields'])
 	table.append(['break'])
-	table.append(['YIELDS']+[chn.replace('isE','isL') for chn in channels if 'isE' in chn and nttag in chn]+['\\\\'])
+	table.append(['YIELDS']+[chn for chn in channels if isEM in chn]+['\\\\'])
 	for proc in bkgProcList+['totBkg',dataName,'dataOverBkg']+sigProcList:
 		row = [procNames[proc]]
 		for chn in channels:
-			if not ('isE' in chn and nttag in chn): continue
+			if isEM not in chn: continue
 			modTag = chn[chn.find('nW'):]
-			histoPrefixE = allhists[chn][0][:allhists[chn][0].find('__')+2]
-			histoPrefixM = histoPrefixE.replace('isE','isM')
+			histoPrefix = allhists[chn][0][:allhists[chn][0].find('__')+2]
 			yieldtemp = 0.
-			yieldtempE = 0.
-			yieldtempM = 0.
-			yielderrtemp = 0. 
+			yielderrtemp = 0.
 			if proc=='totBkg' or proc=='dataOverBkg':
 				for bkg in bkgProcList:
-					yieldEplusMtemp = 0
 					try:
-						yieldtempE += yieldsAll[histoPrefixE+bkg]
-						yieldtemp += yieldsAll[histoPrefixE+bkg]
-						yieldEplusMtemp += yieldsAll[histoPrefixE+bkg]
-						yielderrtemp += yieldsErrsAll[histoPrefixE+bkg]**2
-						yielderrtemp += (getShapeSystUnc(bkg,chn)*yieldsAll[histoPrefixE+bkg])**2
+						yieldtemp += yieldsAll[histoPrefix+bkg]
+						yielderrtemp += yieldsErrsAll[histoPrefix+bkg]**2
+						yielderrtemp += (modelingSys[bkg]*yieldsAll[histoPrefix+bkg])**2
+						yielderrtemp += (getShapeSystUnc(bkg,chn)*yieldsAll[histoPrefix+bkg])**2
 					except:
 						print "Missing",bkg,"for channel:",chn
 						pass
-					try:
-						yieldtempM += yieldsAll[histoPrefixM+bkg]
-						yieldtemp += yieldsAll[histoPrefixM+bkg]
-						yieldEplusMtemp += yieldsAll[histoPrefixM+bkg]
-						yielderrtemp += yieldsErrsAll[histoPrefixM+bkg]**2
-						yielderrtemp += (getShapeSystUnc(bkg,chn.replace('isE','isM'))*yieldsAll[histoPrefixM+bkg])**2
-					except:
-						print "Missing",bkg,"for channel:",chn.replace('isE','isM')
-						pass
-				yielderrtemp += (elcorrdSys*yieldtempE)**2+(mucorrdSys*yieldtempM)**2
+				yielderrtemp += (corrdSys*yieldtemp)**2
 				if proc=='dataOverBkg':
-					dataTemp = yieldsAll[histoPrefixE+dataName]+yieldsAll[histoPrefixM+dataName]+1e-20
-					dataTempErr = yieldsErrsAll[histoPrefixE+dataName]**2+yieldsErrsAll[histoPrefixM+dataName]**2
+					dataTemp = yieldsAll[histoPrefix+dataName]+1e-20
+					dataTempErr = yieldsErrsAll[histoPrefix+dataName]**2
 					yielderrtemp = ((dataTemp/yieldtemp)**2)*(dataTempErr/dataTemp**2+yielderrtemp/yieldtemp**2)
 					yieldtemp = dataTemp/yieldtemp
 			else:
 				try:
-					yieldtempE += yieldsAll[histoPrefixE+proc]
-					yieldtemp  += yieldsAll[histoPrefixE+proc]
-					yielderrtemp += yieldsErrsAll[histoPrefixE+proc]**2
-					yielderrtemp += (getShapeSystUnc(proc,chn)*yieldsAll[histoPrefixE+proc])**2
+					yieldtemp += yieldsAll[histoPrefix+proc]
+					yielderrtemp += yieldsErrsAll[histoPrefix+proc]**2
+					yielderrtemp += (getShapeSystUnc(proc,chn)*yieldsAll[histoPrefix+proc])**2
 				except:
 					print "Missing",proc,"for channel:",chn
-					pass
-				try:
-					yieldtempM += yieldsAll[histoPrefixM+proc]
-					yieldtemp  += yieldsAll[histoPrefixM+proc]
-					yielderrtemp += yieldsErrsAll[histoPrefixM+proc]**2
-					yielderrtemp += (getShapeSystUnc(proc,chn.replace('isE','isM'))*yieldsAll[histoPrefixM+proc])**2
-				except:
-					print "Missing",proc,"for channel:",chn.replace('isE','isM')
 					pass
 				if proc in sigProcList:
 					signal=proc
 					if 'left' in signal: signal=proc.replace('left','')+'left'
 					if 'right' in signal: signal=proc.replace('right','')+'right'
-					yieldtempE*=xsec[signal]
-					yieldtempM*=xsec[signal]
 					yieldtemp*=xsec[signal]
 					yielderrtemp*=xsec[signal]**2
-				yielderrtemp += (elcorrdSys*yieldtempE)**2+(mucorrdSys*yieldtempM)**2
+				else: yielderrtemp += (modelingSys[proc]*yieldtemp)**2
+				yielderrtemp += (corrdSys*yieldtemp)**2
 			yielderrtemp = math.sqrt(yielderrtemp)
-			if proc==dataName: row.append(' & '+str(int(yieldsAll[histoPrefixE+proc]+yieldsAll[histoPrefixM+proc])))
+			if proc==dataName: row.append(' & '+str(int(yieldsAll[histoPrefix+proc])))
 			else: row.append(' & '+str(round_sig(yieldtemp,5))+' $\pm$ '+str(round_sig(yielderrtemp,2)))
 		row.append('\\\\')
 		table.append(row)
-	iSig=0
+	iSig = 0
 	for sig in sigProcList:
 		#row=['SoverSqrtSpB_'+sig]
 		row=['SoverSigmaB_'+sig]
 		iChn = 1
-		for chn_ in channels: 
-			if not ('isE' in chn_ and nttag in chn_): continue
-			chn = chn_.replace('isE','isL')
-			bkgYld_ = float([iList for iList in table[table.index(['','isL_'+nttag+'_yields']):] if iList[0] == procNames['totBkg']][0][iChn].strip().split()[1])
-			bkgYldErr_ = float([iList for iList in table[table.index(['','isL_'+nttag+'_yields']):] if iList[0] == procNames['totBkg']][0][iChn].strip().split()[3])
-			sigYld_ = float([iList for iList in table[table.index(['','isL_'+nttag+'_yields']):] if iList[0] == procNames[sig]][0][iChn].strip().split()[1])
-			sigYldErr_ = float([iList for iList in table[table.index(['','isL_'+nttag+'_yields']):] if iList[0] == procNames[sig]][0][iChn].strip().split()[3])
+		for chn in channels: 
+			if isEM not in chn: continue
+			bkgYld_ = float([iList for iList in table[table.index(['',isEM+'_yields']):] if iList[0] == procNames['totBkg']][0][iChn].strip().split()[1])
+			bkgYldErr_ = float([iList for iList in table[table.index(['',isEM+'_yields']):] if iList[0] == procNames['totBkg']][0][iChn].strip().split()[3])
+			sigYld_ = float([iList for iList in table[table.index(['',isEM+'_yields']):] if iList[0] == procNames[sig]][0][iChn].strip().split()[1])
+			sigYldErr_ = float([iList for iList in table[table.index(['',isEM+'_yields']):] if iList[0] == procNames[sig]][0][iChn].strip().split()[3])
 			#row.append(' & '+str(sigYld_/math.sqrt(sigYld_+bkgYld_)))
 			row.append(' & '+str(round_sig(sigYld_/bkgYldErr_,5)))
 			iChn+=1
 		row.append('\\\\')
 		table.append(row)
 		iSig+=1
+			
+table.append(['break'])
+table.append(['','isL_yields'])
+table.append(['break'])
+table.append(['YIELDS']+[chn.replace('isE','isL') for chn in channels if 'isE' in chn]+['\\\\'])
+for proc in bkgProcList+['totBkg',dataName,'dataOverBkg']+sigProcList:
+	row = [procNames[proc]]
+	for chn in channels:
+		if 'isE' not in chn: continue
+		modTag = chn[chn.find('nW'):]
+		histoPrefixE = allhists[chn][0][:allhists[chn][0].find('__')+2]
+		histoPrefixM = histoPrefixE.replace('isE','isM')
+		yieldtemp = 0.
+		yieldtempE = 0.
+		yieldtempM = 0.
+		yielderrtemp = 0. 
+		if proc=='totBkg' or proc=='dataOverBkg':
+			for bkg in bkgProcList:
+				yieldEplusMtemp = 0
+				try:
+					yieldtempE += yieldsAll[histoPrefixE+bkg]
+					yieldtemp += yieldsAll[histoPrefixE+bkg]
+					yieldEplusMtemp += yieldsAll[histoPrefixE+bkg]
+					yielderrtemp += yieldsErrsAll[histoPrefixE+bkg]**2
+					yielderrtemp += (getShapeSystUnc(bkg,chn)*yieldsAll[histoPrefixE+bkg])**2
+				except:
+					print "Missing",bkg,"for channel:",chn
+					pass
+				try:
+					yieldtempM += yieldsAll[histoPrefixM+bkg]
+					yieldtemp += yieldsAll[histoPrefixM+bkg]
+					yieldEplusMtemp += yieldsAll[histoPrefixM+bkg]
+					yielderrtemp += yieldsErrsAll[histoPrefixM+bkg]**2
+					yielderrtemp += (getShapeSystUnc(bkg,chn.replace('isE','isM'))*yieldsAll[histoPrefixM+bkg])**2
+				except:
+					print "Missing",bkg,"for channel:",chn.replace('isE','isM')
+					pass
+				yielderrtemp += (modelingSys[bkg]*yieldEplusMtemp)**2 #(addSys*(Nelectron+Nmuon))**2 --> correlated across e/m
+			yielderrtemp += (elcorrdSys*yieldtempE)**2+(mucorrdSys*yieldtempM)**2
+			if proc=='dataOverBkg':
+				dataTemp = yieldsAll[histoPrefixE+dataName]+yieldsAll[histoPrefixM+dataName]+1e-20
+				dataTempErr = yieldsErrsAll[histoPrefixE+dataName]**2+yieldsErrsAll[histoPrefixM+dataName]**2
+				yielderrtemp = ((dataTemp/yieldtemp)**2)*(dataTempErr/dataTemp**2+yielderrtemp/yieldtemp**2)
+				yieldtemp = dataTemp/yieldtemp
+		else:
+			try:
+				yieldtempE += yieldsAll[histoPrefixE+proc]
+				yieldtemp  += yieldsAll[histoPrefixE+proc]
+				yielderrtemp += yieldsErrsAll[histoPrefixE+proc]**2
+				yielderrtemp += (getShapeSystUnc(proc,chn)*yieldsAll[histoPrefixE+proc])**2
+			except:
+				print "Missing",proc,"for channel:",chn
+				pass
+			try:
+				yieldtempM += yieldsAll[histoPrefixM+proc]
+				yieldtemp  += yieldsAll[histoPrefixM+proc]
+				yielderrtemp += yieldsErrsAll[histoPrefixM+proc]**2
+				yielderrtemp += (getShapeSystUnc(proc,chn.replace('isE','isM'))*yieldsAll[histoPrefixM+proc])**2
+			except:
+				print "Missing",proc,"for channel:",chn.replace('isE','isM')
+				pass
+			if proc in sigProcList:
+				signal=proc
+				if 'left' in signal: signal=proc.replace('left','')+'left'
+				if 'right' in signal: signal=proc.replace('right','')+'right'
+				yieldtempE*=xsec[signal]
+				yieldtempM*=xsec[signal]
+				yieldtemp*=xsec[signal]
+				yielderrtemp*=xsec[signal]**2
+			else: yielderrtemp += (modelingSys[proc]*yieldtemp)**2 #(addSys*(Nelectron+Nmuon))**2 --> correlated across e/m
+			yielderrtemp += (elcorrdSys*yieldtempE)**2+(mucorrdSys*yieldtempM)**2
+		yielderrtemp = math.sqrt(yielderrtemp)
+		if proc==dataName: row.append(' & '+str(int(yieldsAll[histoPrefixE+proc]+yieldsAll[histoPrefixM+proc])))
+		else: row.append(' & '+str(round_sig(yieldtemp,5))+' $\pm$ '+str(round_sig(yielderrtemp,2)))
+	row.append('\\\\')
+	table.append(row)
+iSig=0
+for sig in sigProcList:
+	#row=['SoverSqrtSpB_'+sig]
+	row=['SoverSigmaB_'+sig]
+	iChn = 1
+	for chn_ in channels: 
+		if 'isE' not in chn_: continue
+		chn = chn_.replace('isE','isL')
+		bkgYld_ = float([iList for iList in table[table.index(['','isL_yields']):] if iList[0] == procNames['totBkg']][0][iChn].strip().split()[1])
+		bkgYldErr_ = float([iList for iList in table[table.index(['','isL_yields']):] if iList[0] == procNames['totBkg']][0][iChn].strip().split()[3])
+		sigYld_ = float([iList for iList in table[table.index(['','isL_yields']):] if iList[0] == procNames[sig]][0][iChn].strip().split()[1])
+		sigYldErr_ = float([iList for iList in table[table.index(['','isL_yields']):] if iList[0] == procNames[sig]][0][iChn].strip().split()[3])
+		#row.append(' & '+str(sigYld_/math.sqrt(sigYld_+bkgYld_)))
+		row.append(' & '+str(round_sig(sigYld_/bkgYldErr_,5)))
+		iChn+=1
+	row.append('\\\\')
+	table.append(row)
+	iSig+=1
 
 #systematics
 table.append(['break'])

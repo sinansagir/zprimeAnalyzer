@@ -1,30 +1,30 @@
+#!/usr/bin/python
+
 import os,sys,fnmatch
 
 thisDir = os.getcwd()
-templateDir = thisDir+'/../makeTemplates/templates_zpMass_2018_8_27'
-thetaConfigTemp = thisDir+'/theta_config_template.py'
+templateDir = thisDir+'/../makeTemplates/templates_zpMass_mergeprocs_2018_8_29'
+thetaConfigTemp = thisDir+'/theta_config_template_ljets.py'
+# templateDir = thisDir+'/../makeTemplates/templates_alljets_2018_9_11'
+# thetaConfigTemp = thisDir+'/theta_config_template_alljets.py'
 doLimits = True #else, it will run 3 and 5 sigma reaches
 do2xSyst = False
 doStatOnly = False
 
-toFilter0 = []#['pileup','jec','jer','jms','jmr','tau21','taupt','topsf','toppt','muRFcorrdNew','pdfNew','trigeff','btag','mistag']#,'jsf'
+toFilter0 = []
 toFilter0 = ['__'+item+'__' for item in toFilter0]
 
 limitConfs = {#'<limit type>':[filter list]
 			  #'all':[],
-# 			  'isE':['isM'], #only electron channel
-# 			  'isM':['isE'], #only muon channel
-# 			  'btagcats':['M__','E__'],
-# 			  'nobtagcats':['_nB'],
-# 			  'ttagcats':['M__','E__'],
-# 			  'nottagcats':['_nT'],
+			  #'isE':['isM'], #only electron channel
+			  #'isM':['isE'], #only muon channel
 			  'btagcats':['M__','E__','E_nB','M_nB','nT0__','nT1__'],
 			  'nobtagcats':['M__','E__','_nB'],
 			  }
 
-limitType = ''#'_36fbinv'
-if do2xSyst: limitType = '_2xSyst'
-if doStatOnly: limitType = '_statOnly'
+limitType = ''
+if do2xSyst: limitType += '_2xSyst'
+if doStatOnly: limitType += '_statOnly'
 limordisc = {0:'_disc',1:'_lim'}
 outputDir = '/user_data/ssagir/Zprime_limits_2018/'+templateDir.split('/')[-1]+limitType+limordisc[doLimits]+'/' #prevent writing these (they are large) to brux6 common area
 if not os.path.exists(outputDir): os.system('mkdir '+outputDir)
@@ -40,6 +40,7 @@ i=0
 for rootfile in findfiles(templateDir, '*.root'):
     if 'rebinned_stat1p1' not in rootfile: continue
     #if '3000p0fb' not in rootfile: continue
+    if 'fbinv' not in rootfile: continue
     if 'plots' in rootfile: continue
     if 'YLD' in rootfile: continue
     rootfilelist.append(rootfile)

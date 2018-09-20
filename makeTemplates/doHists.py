@@ -33,7 +33,7 @@ bkgList = [
 'WW',
 'QCDPt15to7000',
 'QCDflatPt15to7000',
-#'QCDmjj1000toInf','QCDmjj0to1000inc','QCDmjj1000toInfinc',
+'QCDmjj1000toInf',#'QCDmjj0to1000inc','QCDmjj1000toInfinc',
 'QCDPt50to80','QCDPt80to120','QCDPt120to170','QCDPt170to300','QCDPt300to470','QCDPt470to600','QCDPt600to800','QCDPt800to1000','QCDPt1000toInf',
 ]
 
@@ -74,12 +74,12 @@ pfix+='_'+datestr#+'_'+timestr
 if len(sys.argv)>5: isEMlist=[str(sys.argv[5])]
 else: isEMlist = ['E','M']
 if len(sys.argv)>6: nttaglist=[str(sys.argv[6])]
-else: nttaglist = ['0p','0','1']
+else: nttaglist = ['0','1']
 if len(sys.argv)>7: nWtaglist=[str(sys.argv[7])]
 else: nWtaglist=['0p']
 if len(sys.argv)>8: nbtaglist=[str(sys.argv[8])]
 else:
-	nbtaglist=['0p','0','1']#,'2']
+	nbtaglist=['0','1']#,'2']
 	if not isCategorized: nbtaglist = ['0p']
 if len(sys.argv)>9: njetslist=[str(sys.argv[9])]
 else: njetslist=['0p']
@@ -138,13 +138,17 @@ bigbins = [0,50,100,125,150,175,200,225,250,275,300,325,350,375,400,450,500,600,
 
 plotList = {#discriminantName:(discriminantNtupleName, binning, xAxisLabel)
 	'lepPt':('lepPt',linspace(0, 1000, 51).tolist(),';p_{T}(l) [GeV]'),
-	'lepEta':('lepEta',linspace(-2.4, 2.4, 51).tolist(),';Lepton #eta'),
+	'lepEta':('lepEta',linspace(-3, 3, 51).tolist(),';Lepton #eta'),
 	'lepPhi':('lepPhi',linspace(-4, 4, 51).tolist(),';Lepton #phi'),
 	'lepRelIso':('lepRelIso',linspace(0, 1, 51).tolist(),';Lepton RelIso'),
 	'lepAbsIso':('lepAbsIso',linspace(0, 1, 51).tolist(),';Lepton AbsIso'),
 	'metPt':('metPt',linspace(0, 1500, 51).tolist(),';p^{miss}_{T} [GeV]'),
 	'leadJetPt':('leadJetPt',linspace(0, 3000, 51).tolist(),';p_{T}(j_{1}) [GeV]'),
+	'leadJetEta':('leadJetEta',linspace(-3, 3, 51).tolist(),';j_{1} #eta'),
+	'leadJetPhi':('leadJetPhi',linspace(-4, 4, 51).tolist(),';j_{1} #phi'),
 	'subLeadJetPt':('subLeadJetPt',linspace(0, 1500, 51).tolist(),';p_{T}(j_{2}) [GeV]'),
+	'subLeadJetEta':('subLeadJetEta',linspace(-3, 3, 51).tolist(),';j_{2} #eta'),
+	'subLeadJetPhi':('subLeadJetPhi',linspace(-4, 4, 51).tolist(),';j_{2} #phi'),
 	'tlepLeadAK4Pt':('tlepLeadAK4Pt',linspace(0, 1500, 51).tolist(),';p_{T}(j_{1} in leptonic t) [GeV]'),
 	'NJetsSel':('NJetsSel',linspace(0, 15, 16).tolist(),';AK4 jet multiplicity'),
 	'minDR_lepJet':('minDR_lepJet',linspace(0, 2, 51).tolist(),';min[#DeltaR(l, jets)]'),
@@ -160,6 +164,8 @@ plotList = {#discriminantName:(discriminantNtupleName, binning, xAxisLabel)
 	'tlepMass':('tlepMass',linspace(50, 300, 51).tolist(),';M^{rec}(leptonic t) [GeV]'),
 	'tlepChi2':('tlepChi2',linspace(0, 100, 51).tolist(),';#chi^{2}(leptonic t)'),
 	'topAK8Pt':('topAK8Pt',linspace(0, 3000, 51).tolist(),';p_{T}(tagged t) [GeV]'),
+	'topAK8Eta':('topAK8Eta',linspace(-3, 3, 51).tolist(),';tagged t #eta'),
+	'topAK8Phi':('topAK8Phi',linspace(-4, 4, 51).tolist(),';tagged t #phi'),
 	'topAK8Mass':('topAK8Mass',linspace(0, 300, 51).tolist(),';M(tagged t) [GeV]'),
 	'topAK8Tau32':('topAK8Tau32',linspace(0, 1, 51).tolist(),';#tau_{3}/#tau_{2}(tagged t)'),
 	'topAK8SDMass':('topAK8SDMass',linspace(0, 300, 51).tolist(),';M_{S-D}(tagged t) [GeV]'),

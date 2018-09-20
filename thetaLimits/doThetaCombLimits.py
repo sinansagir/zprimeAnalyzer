@@ -1,29 +1,27 @@
+#!/usr/bin/python
+
 import os,sys,fnmatch
 
 thisDir = os.getcwd()
-templateDir = thisDir+'/../makeTemplates/templates_zpMass_2018_8_23'
-templateDirAH = thisDir+'/templates_alljets_2018_8_24'
-thetaConfigTemp = thisDir+'/theta_config_comb_template.py'
-doLimits = False #else, it will run 3 and 5 sigma reaches
+templateDir = thisDir+'/../makeTemplates/templates_zpMass_mergeprocs_2018_8_29'
+templateDirAH = thisDir+'/../templates_alljets_2018_9_20'
+thetaConfigTemp = thisDir+'/theta_config_template_comb.py'
+doLimits = True #else, it will run 3 and 5 sigma reaches
 do2xSyst = False
 doStatOnly = False
 
-toFilter0 = []#['pileup','jec','jer','jms','jmr','tau21','taupt','topsf','toppt','muRFcorrdNew','pdfNew','trigeff','btag','mistag']#,'jsf'
+toFilter0 = []
 toFilter0 = ['__'+item+'__' for item in toFilter0]
 
 limitConfs = {#'<limit type>':[filter list]
 			  #'all':[],
-# 			  'isE':['isM'], #only electron channel
-# 			  'isM':['isE'], #only muon channel
-# 			  'btagcats':['M__','E__'],
-# 			  'nobtagcats':['_nB'],
-# 			  'ttagcats':['M__','E__'],
-# 			  'nottagcats':['_nT'],
+			  #'isE':['isM'], #only electron channel
+			  #'isM':['isE'], #only muon channel
 			  'btagcats':['M__','E__','E_nB','M_nB','nT0__','nT1__'],
 			  'nobtagcats':['M__','E__','_nB'],
 			  }
 
-limitType = '_combination'
+limitType = '_comb_preARC'
 if do2xSyst: limitType += '_2xSyst'
 if doStatOnly: limitType += '_statOnly'
 limordisc = {0:'_disc',1:'_lim'}
