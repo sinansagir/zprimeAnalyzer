@@ -4,8 +4,8 @@ import os,sys,fnmatch
 
 thisDir = os.getcwd()
 templateDir = thisDir+'/../makeTemplates/templates_zpMass_mergeprocs_2018_8_29'
-templateDirAH = thisDir+'/templates_alljets_2018_9_11'
-thetaConfigTemp = thisDir+'/theta_config_comb_template.py'
+templateDirAH = thisDir+'/../templates_alljets_2018_9_20'
+thetaConfigTemp = thisDir+'/theta_config_template_comb.py'
 doLimits = True #else, it will run 3 and 5 sigma reaches
 do2xSyst = False
 doStatOnly = False
@@ -21,7 +21,7 @@ limitConfs = {#'<limit type>':[filter list]
 			  'nobtagcats':['M__','E__','_nB'],
 			  }
 
-limitType = '_comb_cls'
+limitType = '_comb_preARC'
 if do2xSyst: limitType += '_2xSyst'
 if doStatOnly: limitType += '_statOnly'
 limordisc = {0:'_disc',1:'_lim'}

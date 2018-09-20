@@ -9,12 +9,11 @@ import CMS_lumi, tdrstyle
 rt.gROOT.SetBatch(1)
 
 lumi=3000 #for plots
-catList = ['isE','isM']
-iPlots = ['zp_m']#,'zp_m']
+iPlots = ['zp_m_gen','zp_m']
 signals = ['rsg2','rsg3','rsg4','rsg5','rsg6']
-#signals = ['rsg2','rsg4','rsg6']
+signals = ['rsg2','rsg4','rsg6']
 isRebinned = ''#'_rebinned_stat1p0'
-theDir = './templates_alljets_2018_9_11/'
+theDir = './templates_alljets_2018_9_20/'
 yLog  = False
 
 Rfiles = {}
@@ -22,6 +21,7 @@ for sig in signals: Rfiles[sig] = rt.TFile(theDir+'outfile_'+sig+'.root')
 legs   = {'rsg2':'RSG (2 TeV)','rsg3':'RSG (3 TeV)','rsg4':'RSG (4 TeV)','rsg5':'RSG (5 TeV)','rsg6':'RSG (6 TeV)'}
 colors = {'rsg2':rt.kBlack,    'rsg3':rt.kRed,      'rsg4':rt.kOrange,   'rsg5':rt.kBlue,     'rsg6':rt.kGreen+3}
 lines  = {'rsg2':1,            'rsg3':3,            'rsg4':5,            'rsg5':7,            'rsg6':7,'zp_m':3,'zp_m_gen':1}
+scFact = {'rsg2':1,            'rsg3':2,            'rsg4':4,            'rsg5':4,            'rsg6':4,'zp_m':3,'zp_m_gen':1}
 
 #set the tdr style
 tdrstyle.setTDRStyle()
@@ -81,6 +81,7 @@ for sig in signals:
 		#hSigs[sig+'_'+iPlot].Rebin(2)
 		print sig,iPlot,hSigs[sig+'_'+iPlot].Integral()
 		#hSigs[sig+'_'+iPlot].Scale(1./hSigs[sig+'_'+iPlot].Integral())
+		#hSigs[sig+'_'+iPlot].Scale(scFact[sig])
 		hSigs[sig+'_'+iPlot].SetLineColor(colors[sig])
 		hSigs[sig+'_'+iPlot].SetFillStyle(0)
 		if len(iPlots)==1: hSigs[sig+'_'+iPlot].SetLineStyle(1)#lines[sig])
@@ -121,9 +122,9 @@ hSigs[signals[0]+'_'+iPlots[0]].SetMaximum(1.2*hSigs[signals[0]+'_'+iPlots[0]].G
 hSigs[signals[0]+'_'+iPlots[0]].GetXaxis().SetTitle("M(t#bar{t})")
 hSigs[signals[0]+'_'+iPlots[0]].GetYaxis().SetTitle("Events")
 hSigs[signals[0]+'_'+iPlots[0]].Draw("HIST")
-for sig in signals: 
+for sig in reversed(signals): 
 	for iPlot in iPlots:
-		if sig==signals[0] and iPlot==iPlots[0]: continue
+		#if sig==signals[0] and iPlot==iPlots[0]: continue
 		hSigs[sig+'_'+iPlot].Draw("SAME HIST")
 uPad.RedrawAxis()
 

@@ -183,7 +183,7 @@ def PlotLimits(limitDir,limitFile,lumiStr,tempKey):
     YaxisTitle = "#sigma(RSG #rightarrow t#bar{t}) [pb]"
 
     expected95.Draw("a3")
-    expected95.GetYaxis().SetRangeUser(.001+.00001,10.45)
+    expected95.GetYaxis().SetRangeUser(.0008,8.0)
     expected95.GetXaxis().SetRangeUser(mass[0],mass[-1])
     expected95.GetXaxis().SetTitle(XaxisTitle)
     expected95.GetXaxis().SetTitleOffset(1)
@@ -238,23 +238,30 @@ def PlotLimits(limitDir,limitFile,lumiStr,tempKey):
     canvas.SaveAs(outDir+'/'+plotName+'.png')
     return round(limExpected,2), round(limObserved,2)
 
+doCLS='' #leave empty for Bayesian and '_acls' for asymptotic CLs limits
 iPlotList=['zpMass']
-tempKeys = ['btagcats','nobtagcats']
-#tempKeys = ['all']
+binnings = ['1p1']
+tempKeys=['btagcats','nobtagcats']
+#tempKeys=['all']
 cutString=''
 dirs = {
 		'Zp20180823':'templates_zpMass_2018_8_23_lim',
+		'Zp20180823combo':'templates_zpMass_2018_8_23_combination_lim',
 		'Zp20180824alljets':'templates_alljets_2018_8_24_lim',
 		'Zp20180829':'templates_zpMass_2018_8_29_lim',
+		'Zp20180829combo':'templates_zpMass_2018_8_29_combination_lim',
 		'Zp201808292':'templates_zpMass_2018_8_29_2_lim',
 		'Zp201808292alljets':'templates_alljets_2018_9_11_2_lim',
-		'Zp20180829statOnly':'templates_zpMass_2018_8_29_statOnly_lim',
+		'Zp20180829combo2':'templates_zpMass_2018_8_29_combination2_lim',
 		'Zp20180829Sept15':'templates_zpMass_2018_8_29_15Sept_lim',
 		'Zp20180829Sept15alljets':'templates_alljets_2018_9_11_15Sept_lim',
+		'Zp20180829comboSept15':'templates_zpMass_2018_8_29_comb_15Sept_lim',
 		'Zp20180829mergeprocs':'templates_zpMass_mergeprocs_2018_8_29_lim',
+		'Zp20180829mergeprocscomb':'templates_zpMass_mergeprocs_2018_8_29_comb_lim',
+		'Zp20180829mergeprocscombmistag':'templates_zpMass_mergeprocs_2018_8_29_comb_mistag_lim',
+		'Zp20180829mergeprocscombpreARC':'templates_zpMass_mergeprocs_2018_8_29_comb_preARC_lim',
 		}
-dirKeyList = ['Zp20180829mergeprocs']
-binnings = ['1p1']
+dirKeyList = ['Zp20180829mergeprocscombpreARC']
 
 expLims = {}
 obsLims = {}
@@ -271,9 +278,9 @@ for lumiStr in lumiStrs.keys():
 				obsLims[dirKey+discriminant+lumiStr][binning_] = []
 				for tempKey in tempKeys:
 					limitDir='/user_data/ssagir/Zprime_limits_2018/'+dir+'/'+tempKey+'/'
-					limitFile='/limits_templates_'+discriminant+'_'+signal+'M2000'+'_'+lumiStr+'fbinv'+binning+'_expected.txt'	
+					limitFile='/limits_templates_'+discriminant+'_'+signal+'M2000'+'_'+lumiStr+'fbinv'+binning+doCLS+'_expected.txt'	
 					print limitDir+cutString+limitFile
-					expTemp,obsTemp = PlotLimits(limitDir,limitFile,lumiStr,tempKey)
+					expTemp,obsTemp = PlotLimits(limitDir,limitFile,lumiStr,tempKey+doCLS)
 					expLims[dirKey+discriminant+lumiStr][binning_].append(expTemp)
 					obsLims[dirKey+discriminant+lumiStr][binning_].append(obsTemp)
 

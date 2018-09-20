@@ -4,7 +4,7 @@ import os,sys,fnmatch
 
 thisDir = os.getcwd()
 templateDir = thisDir+'/../makeTemplates/templates_zpMass_mergeprocs_2018_8_29'
-thetaConfigTemp = thisDir+'/theta_config_template.py'
+thetaConfigTemp = thisDir+'/theta_config_template_ljets.py'
 # templateDir = thisDir+'/../makeTemplates/templates_alljets_2018_9_11'
 # thetaConfigTemp = thisDir+'/theta_config_template_alljets.py'
 doLimits = True #else, it will run 3 and 5 sigma reaches
