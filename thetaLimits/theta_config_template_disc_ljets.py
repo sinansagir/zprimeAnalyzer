@@ -83,7 +83,7 @@ def getNSigmaCrossSecMin(model, N=5, errorMax=0.001):
 ##################################################################################################################
 
 def get_model(incMCstat=True, isStatOnly=False, systFact=1):
-	model = build_model_from_rootfile(input,include_mc_uncertainties=incMCstat)#,histogram_filter = (lambda s: s.count('jec')==0 and s.count('jer')==0)
+	model = build_model_from_rootfile(input,include_mc_uncertainties=incMCstat,histogram_filter = (lambda s: s.count('jec')==0))# and s.count('jer')==0)
 	
 	model.fill_histogram_zerobins()
 	model.set_signal_processes('sig')
@@ -100,8 +100,8 @@ def get_model(incMCstat=True, isStatOnly=False, systFact=1):
 				except: pass
 		try: model.add_lognormal_uncertainty('lumi', math.log(1.0+systFact*systslj['lumi']), '*', '*')
 		except: pass
-		#try: model.add_lognormal_uncertainty('jec', math.log(1.0+systFact*systslj['jec']), '*', '*')
-		#except: pass
+		try: model.add_lognormal_uncertainty('jec', math.log(1.0+systFact*systslj['jec']), '*', '*')
+		except: pass
 		try: model.add_lognormal_uncertainty('jer', math.log(1.0+systFact*systslj['jer']), '*', '*')
 		except: pass
 		if any(['_nB' in obs for obs in obsvs]):
@@ -184,17 +184,10 @@ if doLimits:
 	print >>f_acls, exp_acls
 	f_acls.close()
 else: #N sigma discovery reaches (NOTE that this implementation currently works only with utils/theta-auto.py, check if this is OK or if it can be implemented in utils2 easily!!!)
-	signal_process_groups = {'sig': ['sig']}
-	exp_disc = discovery(model,spid='sig',use_data=False,Z_error_max=0.1,input_expected='toys:%f' % xs,ts_method=derll)
-	print exp_disc
-	f_disc = open(rFileName+'.json', 'w')
-	json.dump(exp_disc, f_disc)
-	try: getNSigmaCrossSecMin(model,3,0.01)
-	except: pass
-	try: getNSigmaCrossSecMin(model,5,0.01)
-	except: pass
+	getNSigmaCrossSecMin(model,3,0.01)
+	getNSigmaCrossSecMin(model,5,0.01)
 
-report.write_html('htmlout_'+rFileName)
+#report.write_html('htmlout_'+rFileName)
 
 doPostfit=True
 if doLimits and doPostfit:

@@ -1,13 +1,14 @@
 #!/usr/bin/python
 
-import os,sys,math,pickle
+import os,sys,math,pickle,json
 
-input = 'dummy.root'
+inputSL = 'dummy.root'
+inputAH = 'dummy.root'
 
-rFileName = input.split('/')[-1].replace('.root','')
+rFileName = inputSL.split('/')[-1].replace('.root','')
 
 thisDir = os.getcwd()
-
+		
 ##################################################################################################################
 
 systslj={
@@ -31,6 +32,20 @@ systslj={
 }
 systslj['xsec_other']=math.sqrt(systslj['xsec_sitop']**2+systslj['xsec_wjets']**2+systslj['xsec_zjets']**2+systslj['xsec_dibos']**2+systslj['xsec_qcd']**2+systslj['muRF_wjets']**2)
 
+systsaj={
+'lumi':.01,
+'jec':.02,
+'jer':.03,
+'btag':.01,
+'mistag':.10,
+'ttag':.05,
+'pdf':.024,
+'muRF_ttbar':.04, #B2G-17-017-V9: ~30%, scaled by lumi
+'xsec_ttbar':.03, #B2G-17-017-V9: 20%, scaled by lumi
+'modmass':.02,
+'closure':.05,
+}
+
 ##################################################################################################################
 
 def getNSigmaCrossSecMin(model, N=5, errorMax=0.001):
@@ -51,7 +66,7 @@ def getNSigmaCrossSecMin(model, N=5, errorMax=0.001):
 			
 	while True:
 		
-		#clean_workdir()
+		clean_workdir()
 		signif=exp_significance_approx(model)
 		
 		for signal in signals:
@@ -79,11 +94,11 @@ def getNSigmaCrossSecMin(model, N=5, errorMax=0.001):
 		
 	for signal in signals:
 		model.scale_predictions(1/beta[signal],signal)
-		
+
 ##################################################################################################################
 
-def get_model(incMCstat=True, isStatOnly=False, systFact=1):
-	model = build_model_from_rootfile(input,include_mc_uncertainties=incMCstat)#,histogram_filter = (lambda s: s.count('jec')==0 and s.count('jer')==0)
+def get_model_ljets(incMCstat=True, isStatOnly=False, systFact=1):
+	model = build_model_from_rootfile(inputSL,include_mc_uncertainties=incMCstat,histogram_filter = (lambda s: s.count('jec')==0))# and s.count('jer')==0)
 	
 	model.fill_histogram_zerobins()
 	model.set_signal_processes('sig')
@@ -100,8 +115,8 @@ def get_model(incMCstat=True, isStatOnly=False, systFact=1):
 				except: pass
 		try: model.add_lognormal_uncertainty('lumi', math.log(1.0+systFact*systslj['lumi']), '*', '*')
 		except: pass
-		#try: model.add_lognormal_uncertainty('jec', math.log(1.0+systFact*systslj['jec']), '*', '*')
-		#except: pass
+		try: model.add_lognormal_uncertainty('jec', math.log(1.0+systFact*systslj['jec']), '*', '*')
+		except: pass
 		try: model.add_lognormal_uncertainty('jer', math.log(1.0+systFact*systslj['jer']), '*', '*')
 		except: pass
 		if any(['_nB' in obs for obs in obsvs]):
@@ -143,8 +158,49 @@ def get_model(incMCstat=True, isStatOnly=False, systFact=1):
 	return model
 
 ##################################################################################################################
-		
-model = get_model()
+
+def get_model_alljets(incMCstat=True, isStatOnly=False, systFact=1):
+	model = build_model_from_rootfile(inputAH,include_mc_uncertainties=incMCstat,histogram_filter = (lambda s: s.count('jec')==0))# and s.count('jer')==0)
+	
+	model.fill_histogram_zerobins()
+	model.set_signal_processes('sig')
+	
+	if not isStatOnly:
+		procs = model.processes
+		for proc in procs:
+			if proc!='qcd':
+				try: model.add_lognormal_uncertainty('lumi', math.log(1.0+systFact*systsaj['lumi']), proc, '*')
+				except: pass
+				try: model.add_lognormal_uncertainty('jec', math.log(1.0+systFact*systsaj['jec']), proc, '*')
+				except: pass
+				try: model.add_lognormal_uncertainty('jer', math.log(1.0+systFact*systsaj['jer']), proc, '*')
+				except: pass
+				try: model.add_lognormal_uncertainty('btag', math.log(1.0+systFact*systsaj['btag']), proc, '*')
+				except: pass
+				try: model.add_lognormal_uncertainty('mistag', math.log(1.0+systFact*systsaj['mistag']), proc, '*')
+				except: pass
+				try: model.add_lognormal_uncertainty('ttag', math.log(1.0+systFact*systsaj['ttag']), proc, '*')
+				except: pass
+				try: model.add_lognormal_uncertainty('pdf', math.log(1.0+systFact*systsaj['pdf']), proc, '*')
+				except: pass
+			if proc=='ttbar':
+				try: model.add_lognormal_uncertainty('xsec_ttbar', math.log(1.0+systFact*systsaj['xsec_ttbar']), proc, '*')
+				except: pass
+				try: model.add_lognormal_uncertainty('muRF_ttbar', math.log(1.0+systFact*systsaj['muRF_ttbar']), proc, '*')
+				except: pass
+			if proc=='qcd':
+				try: model.add_lognormal_uncertainty('modmass', math.log(1.0+systFact*systsaj['modmass']), proc, '*')
+				except: pass
+				try: model.add_lognormal_uncertainty('closure', math.log(1.0+systFact*systsaj['closure']), proc, '*')
+				except: pass
+			
+	return model	
+
+##################################################################################################################
+
+model = get_model_ljets()
+alljetsModel = get_model_alljets()
+model.combine(alljetsModel)
 model_summary(model)
 
 ##################################################################################################################
@@ -183,18 +239,16 @@ if doLimits:
 	f_acls = open('limits_'+rFileName+'_acls_expected.txt', 'w')
 	print >>f_acls, exp_acls
 	f_acls.close()
-else: #N sigma discovery reaches (NOTE that this implementation currently works only with utils/theta-auto.py, check if this is OK or if it can be implemented in utils2 easily!!!)
-	signal_process_groups = {'sig': ['sig']}
-	exp_disc = discovery(model,spid='sig',use_data=False,Z_error_max=0.1,input_expected='toys:%f' % xs,ts_method=derll)
-	print exp_disc
-	f_disc = open(rFileName+'.json', 'w')
-	json.dump(exp_disc, f_disc)
-	try: getNSigmaCrossSecMin(model,3,0.01)
-	except: pass
-	try: getNSigmaCrossSecMin(model,5,0.01)
-	except: pass
+# 	exp_cls, obs_cls = cls_limits(model, use_data=False, signal_process_groups={'': ['sig']}, options=options)#, nuisance_prior=None, frequentist_bootstrapping=False, cls_options={}, seed=None)
+# 	f_cls = open('limits_'+rFileName+'_cls_expected.txt', 'w')
+# 	print >>f_cls, exp_cls
+# 	f_cls.close()
 
-report.write_html('htmlout_'+rFileName)
+else: #N sigma discovery reaches (NOTE that this implementation currently works only with utils/theta-auto.py, check if this is OK or if it can be implemented in utils2 easily!!!)
+	getNSigmaCrossSecMin(model,3,0.01)
+	getNSigmaCrossSecMin(model,5,0.01)
+
+#report.write_html('htmlout_'+rFileName)
 
 doPostfit=True
 if doLimits and doPostfit:
@@ -228,16 +282,14 @@ if doLimits and doPostfit:
 
 	cov_matrix = theta_res['__cov'][0]
 	ind_dict = {}
-	theSystsFound = []
 	for i in xrange(cov_matrix.shape[0]):
 		for ii in xrange(cov_matrix.shape[1]):
 			entry = cov_matrix[i,ii]
 			for proc, val in param_list:
-				if abs(val-entry) < 1e-9 and proc not in theSystsFound:
+				if abs(val-entry) < 1e-9:
 					if i != ii:
 						print "WARNING row and column index don't match"
 					ind_dict[i] = proc
-					theSystsFound.append(proc)
 				if i not in ind_dict.keys():
 					ind_dict[i] = 'beta_signal'
 

@@ -22,31 +22,76 @@ mass_str = ['2000','3000','4000','5000','6000']
 theory_xsec = [1.3*1.153,1.3*1.556*0.1,1.3*3.585*0.01,1.3*1.174*0.01,1.3*4.939*0.001]
 theory_xsec_13tev = [1.3*0.9528,1.3*0.1289,1.3*0.02807,1.3*0.009095]
 
-limFiles   = [ #compare different optimized selections and discriminants
-              '/user_data/ssagir/Zprime_limits_2018/templates_zpMass_2018_8_29_lim/btagcats/limits_templates_'+discriminant+'_'+signal+'M2000'+'_3000p0fbinv'+binning+'_expected.txt',
-              '/user_data/ssagir/Zprime_limits_2018/templates_zpMass_2018_8_29_lim/btagcats/limits_templates_'+discriminant+'_'+signal+'M2000'+'_1000p0fbinv'+binning+'_expected.txt',
-              '/user_data/ssagir/Zprime_limits_2018/templates_zpMass_2018_8_29_lim/btagcats/limits_templates_'+discriminant+'_'+signal+'M2000'+'_300p0fbinv'+binning+'_expected.txt',
-              '/user_data/ssagir/Zprime_limits_2018/templates_zpMass_2018_8_29_lim/btagcats/limits_templates_'+discriminant+'_'+signal+'M2000'+'_36p0fbinv'+binning+'_expected.txt',
-              '/user_data/ssagir/Zprime_limits_2018/templates_zpMass_2018_8_29_2xSyst_lim/btagcats/limits_templates_'+discriminant+'_'+signal+'M2000'+'_36p0fbinv'+binning+'_expected.txt',
-              '/user_data/ssagir/Zprime_limits_2018/templates_zpMass_2018_8_29_statOnly_lim/btagcats/limits_templates_'+discriminant+'_'+signal+'M2000'+'_36p0fbinv'+binning+'_expected.txt',
+limFiles   = [ #compare different limit configurations
+              '/user_data/ssagir/Zprime_limits_2018/templates_zpMass_mergeprocs_2018_8_29_comb_lim/nobtagcats/limits_templates_'+discriminant+'_'+signal+'M2000'+'_36p0fbinv'+binning+'_expected.txt',
+              '/user_data/ssagir/Zprime_limits_2018/templates_alljets_2018_9_11_15Sept_lim/all/limits_templates_'+discriminant+'_'+signal+'M2000'+'_36p0fbinv_expected.txt',
+              '/user_data/ssagir/Zprime_limits_2018/templates_zpMass_mergeprocs_2018_8_29_lim/nobtagcats/limits_templates_'+discriminant+'_'+signal+'M2000'+'_36p0fbinv'+binning+'_expected.txt',
+              '/user_data/ssagir/Zprime_limits_2018/templates_zpMass_mergeprocs_2018_8_29_comb_2xSyst_lim/nobtagcats/limits_templates_'+discriminant+'_'+signal+'M2000'+'_36p0fbinv'+binning+'_expected.txt',
+              '/user_data/ssagir/Zprime_limits_2018/templates_zpMass_mergeprocs_2018_8_29_comb_statOnly_lim/nobtagcats/limits_templates_'+discriminant+'_'+signal+'M2000'+'_36p0fbinv'+binning+'_expected.txt',
+              '/user_data/ssagir/Zprime_limits_2018/templates_zpMass_B2G17017alljets_lim/limits_templates_'+discriminant+'_'+signal+'M2000'+'_36p0fbinv'+binning+'_expected.txt',
               '/user_data/ssagir/Zprime_limits_2018/templates_zpMass_B2G17017ljets_lim/limits_templates_'+discriminant+'_'+signal+'M2000'+'_36p0fbinv'+binning+'_expected.txt',
               '/user_data/ssagir/Zprime_limits_2018/templates_zpMass_B2G17017all_lim/limits_templates_'+discriminant+'_'+signal+'M2000'+'_36p0fbinv'+binning+'_expected.txt',
 			  ]
 
-limLegs    = [
-              '3000 fb^{-1} (14 TeV)',
-              '1000 fb^{-1} (14 TeV)',
-              '300 fb^{-1} (14 TeV)',
-              '36 fb^{-1} (14 TeV)',
-              '36 fb^{-1} (14 TeV) -- #times2 systematics',
-              '36 fb^{-1} (14 TeV) -- stat. only',
-              '36 fb^{-1} (13 TeV) -- B2G-17-17 l+jets',
-              '36 fb^{-1} (13 TeV) -- B2G-17-17 0l+1l+2l',
-#               '2#times systematics',
-#               'statistical uncertainty only',
-#               'B2G-17-17 l+jets',
+limDets    = [
+              ['36 fb^{-1} (14 TeV) -- 0l+1l',rt.kOrange,1],
+              ['36 fb^{-1} (14 TeV) -- 0l',rt.kOrange,2],
+              ['36 fb^{-1} (14 TeV) -- 1l',rt.kOrange,9],
+              ['36 fb^{-1} (14 TeV) -- 0l+1l (#times2 systematics)',rt.kBlack,2],
+              ['36 fb^{-1} (14 TeV) -- 0l+1l (only stat. unc.)',rt.kBlue,2],
+              ['36 fb^{-1} (13 TeV) -- B2G-17-17 0l',rt.kGreen+3,2],
+              ['36 fb^{-1} (13 TeV) -- B2G-17-17 1l',rt.kGreen+3,9],
+              ['36 fb^{-1} (13 TeV) -- B2G-17-17 0l+1l+2l',rt.kGreen+3,1],
 			  ]
 
+limFiles   = [ #compare different limit configurations
+              '/user_data/ssagir/Zprime_limits_2018/templates_zpMass_mergeprocs_2018_8_29_comb_lim/nobtagcats/limits_templates_'+discriminant+'_'+signal+'M2000'+'_3000p0fbinv'+binning+'_expected.txt',
+              '/user_data/ssagir/Zprime_limits_2018/templates_zpMass_mergeprocs_2018_8_29_comb_2xSyst_lim/nobtagcats/limits_templates_'+discriminant+'_'+signal+'M2000'+'_3000p0fbinv'+binning+'_expected.txt',
+              '/user_data/ssagir/Zprime_limits_2018/templates_zpMass_mergeprocs_2018_8_29_comb_statOnly_lim/nobtagcats/limits_templates_'+discriminant+'_'+signal+'M2000'+'_3000p0fbinv'+binning+'_expected.txt',
+              '/user_data/ssagir/Zprime_limits_2018/templates_zpMass_mergeprocs_2018_8_29_comb_lim/nobtagcats/limits_templates_'+discriminant+'_'+signal+'M2000'+'_1000p0fbinv'+binning+'_expected.txt',
+              '/user_data/ssagir/Zprime_limits_2018/templates_zpMass_mergeprocs_2018_8_29_comb_2xSyst_lim/nobtagcats/limits_templates_'+discriminant+'_'+signal+'M2000'+'_1000p0fbinv'+binning+'_expected.txt',
+              '/user_data/ssagir/Zprime_limits_2018/templates_zpMass_mergeprocs_2018_8_29_comb_statOnly_lim/nobtagcats/limits_templates_'+discriminant+'_'+signal+'M2000'+'_1000p0fbinv'+binning+'_expected.txt',
+              '/user_data/ssagir/Zprime_limits_2018/templates_zpMass_mergeprocs_2018_8_29_comb_lim/nobtagcats/limits_templates_'+discriminant+'_'+signal+'M2000'+'_300p0fbinv'+binning+'_expected.txt',
+              '/user_data/ssagir/Zprime_limits_2018/templates_zpMass_mergeprocs_2018_8_29_comb_2xSyst_lim/nobtagcats/limits_templates_'+discriminant+'_'+signal+'M2000'+'_300p0fbinv'+binning+'_expected.txt',
+              '/user_data/ssagir/Zprime_limits_2018/templates_zpMass_mergeprocs_2018_8_29_comb_statOnly_lim/nobtagcats/limits_templates_'+discriminant+'_'+signal+'M2000'+'_300p0fbinv'+binning+'_expected.txt',
+			  ]
+
+limDets    = [
+              ['3000 fb^{-1} -- 0l+1l',rt.kBlack,1],
+              ['3000 fb^{-1} -- 0l+1l -- #times2 systematics',rt.kBlack,2],
+              ['3000 fb^{-1} -- 0l+1l -- only stat. unc.',rt.kBlack,9],
+              ['1000 fb^{-1} -- 0l+1l',rt.kBlue,1],
+              ['1000 fb^{-1} -- 0l+1l -- #times2 systematics',rt.kBlue,2],
+              ['1000 fb^{-1} -- 0l+1l -- only stat. unc.',rt.kBlue,9],
+              ['300 fb^{-1} -- 0l+1l',rt.kOrange,1],
+              ['300 fb^{-1} -- 0l+1l -- #times2 systematics',rt.kOrange,2],
+              ['300 fb^{-1} -- 0l+1l -- only stat. unc.',rt.kOrange,9],
+			  ]
+ 
+limFiles   = [ #compare different optimized selections and discriminants
+              '/user_data/ssagir/Zprime_limits_2018/templates_alljets_2018_9_11_15Sept_lim/all/limits_templates_'+discriminant+'_'+signal+'M2000'+'_3000p0fbinv_expected.txt',
+              '/user_data/ssagir/Zprime_limits_2018/templates_zpMass_mergeprocs_2018_8_29_lim/nobtagcats/limits_templates_'+discriminant+'_'+signal+'M2000'+'_3000p0fbinv'+binning+'_expected.txt',
+              '/user_data/ssagir/Zprime_limits_2018/templates_zpMass_mergeprocs_2018_8_29_comb_lim/nobtagcats/limits_templates_'+discriminant+'_'+signal+'M2000'+'_3000p0fbinv'+binning+'_expected.txt',
+#               '/user_data/ssagir/Zprime_limits_2018/templates_alljets_2018_9_11_15Sept_lim/all/limits_templates_'+discriminant+'_'+signal+'M2000'+'_1000p0fbinv_expected.txt',
+#               '/user_data/ssagir/Zprime_limits_2018/templates_zpMass_mergeprocs_2018_8_29_lim/nobtagcats/limits_templates_'+discriminant+'_'+signal+'M2000'+'_1000p0fbinv'+binning+'_expected.txt',
+#               '/user_data/ssagir/Zprime_limits_2018/templates_zpMass_mergeprocs_2018_8_29_comb_lim/nobtagcats/limits_templates_'+discriminant+'_'+signal+'M2000'+'_1000p0fbinv'+binning+'_expected.txt',
+#               '/user_data/ssagir/Zprime_limits_2018/templates_alljets_2018_9_11_15Sept_lim/all/limits_templates_'+discriminant+'_'+signal+'M2000'+'_300p0fbinv_expected.txt',
+#               '/user_data/ssagir/Zprime_limits_2018/templates_zpMass_mergeprocs_2018_8_29_lim/nobtagcats/limits_templates_'+discriminant+'_'+signal+'M2000'+'_300p0fbinv'+binning+'_expected.txt',
+#               '/user_data/ssagir/Zprime_limits_2018/templates_zpMass_mergeprocs_2018_8_29_comb_lim/nobtagcats/limits_templates_'+discriminant+'_'+signal+'M2000'+'_300p0fbinv'+binning+'_expected.txt',
+			  ]
+
+limDets    = [
+              ['3000 fb^{-1} -- 0l',rt.kBlack,2],
+              ['3000 fb^{-1} -- 1l',rt.kBlack,9],
+              ['3000 fb^{-1} -- 0l+1l',rt.kBlack,1],
+#               ['1000 fb^{-1} -- 0l',rt.kBlue,2],
+#               ['1000 fb^{-1} -- 1l',rt.kBlue,9],
+#               ['1000 fb^{-1} -- 0l+1l',rt.kBlue,1],
+#               ['300 fb^{-1} -- 0l',rt.kOrange,2],
+#               ['300 fb^{-1} -- 1l',rt.kOrange,9],
+#               ['300 fb^{-1} -- 0l+1l',rt.kOrange,1],
+			  ]
+			  
 scale_up = [0,0,0,0,0][:len(mass_str)]#%
 scale_dn = [0,0,0,0,0][:len(mass_str)]#%
 pdf_up   = [0,0,0,0,0][:len(mass_str)]#%
@@ -158,14 +203,14 @@ for limFile in limFiles:
 		observed[limFile].SetPoint(i,observeds_[i][0],observeds_[i][1])
 		expected[limFile].SetPoint(i,expecteds_[i][0],expecteds_[i][1])
 
-	ind+=1
 	observed[limFile].SetLineColor(rt.kBlack)
 	observed[limFile].SetLineWidth(2)
 	observed[limFile].SetMarkerStyle(20)							
-	expected[limFile].SetLineColor(ind)
+	expected[limFile].SetLineColor(limDets[ind][1])
 	expected[limFile].SetLineWidth(2)
-	expected[limFile].SetLineStyle(1)
-                                               
+	expected[limFile].SetLineStyle(limDets[ind][2])
+	ind+=1
+
 canvas = rt.TCanvas("c4","c4",50,50,W,H)
 canvas.SetFillColor(0)
 canvas.SetBorderMode(0)
@@ -191,7 +236,7 @@ expected[limFiles[0]].GetYaxis().SetTitle(YaxisTitle)
 for limFile in limFiles:
 	if limFile == limFiles[0]: continue
 	expected[limFile].Draw("same")
-expected[limFiles[3]].Draw("same")
+#expected[limFiles[3]].Draw("same")
 
 theory.SetLineColor(2)
 theory.SetLineStyle(2)
@@ -201,18 +246,18 @@ theory.Draw("same")
 theory13tev.SetLineColor(1)
 theory13tev.SetLineStyle(2)
 theory13tev.SetLineWidth(2)
-theory13tev.Draw("same")
+#theory13tev.Draw("same")
 
-leg = rt.TLegend(.5,.55,.93,.94)
-leg.AddEntry(theory13tev, "Signal cross section (13 TeV)", "l")
-leg.AddEntry(theory, "Signal cross section (14 TeV)", "l")
+leg = rt.TLegend(.5,.5,.93,.9)
+#leg.AddEntry(theory13tev, "Signal cross section (13 TeV)", "l")
+leg.AddEntry(theory, "Signal cross section", "l")
 i=-1
 for limFile in limFiles:
 	i+=1
-	leg.AddEntry(expected[limFile], limLegs[i], "l")
+	leg.AddEntry(expected[limFile], limDets[i][0], "l")
 
 #draw the lumi text on the canvas
-CMS_lumi.lumi_sqrtS = ""#lumiPlot+" fb^{-1} (14 TeV)" # used with iPeriod = 0, e.g. for simulation-only plots (default is an empty string)
+CMS_lumi.lumi_sqrtS = "14 TeV"#lumiPlot+" fb^{-1} (14 TeV)" # used with iPeriod = 0, e.g. for simulation-only plots (default is an empty string)
 CMS_lumi.CMS_lumi(canvas, iPeriod, iPos)
 
 leg.SetShadowColor(0)
@@ -222,8 +267,19 @@ leg.SetFillColor(0)
 leg.SetLineColor(0)
 leg.Draw() 
 
-folder='templates_zpMass_2018_8_29_limplots'
-canvas.SaveAs(folder+'/comparisonljets'+'.pdf')
-canvas.SaveAs(folder+'/comparisonljets'+'.png')
-canvas.SaveAs(folder+'/comparisonljets'+'.eps')
-
+folder='templates_zpMass_mergeprocs_2018_8_29_combplots'
+# canvas.SaveAs(folder+'/comparison36fbinv.pdf')
+# canvas.SaveAs(folder+'/comparison36fbinv.png')
+# canvas.SaveAs(folder+'/comparison36fbinv.eps')
+# canvas.SaveAs(folder+'/combosystcomparisonlumiall.pdf')
+# canvas.SaveAs(folder+'/combosystcomparisonlumiall.png')
+# canvas.SaveAs(folder+'/combosystcomparisonlumiall.eps')
+# canvas.SaveAs(folder+'/combosystcomparison3abinv.pdf')
+# canvas.SaveAs(folder+'/combosystcomparison3abinv.png')
+# canvas.SaveAs(folder+'/combosystcomparison3abinv.eps')
+# canvas.SaveAs(folder+'/combochnscomparisonlumiall.pdf')
+# canvas.SaveAs(folder+'/combochnscomparisonlumiall.png')
+# canvas.SaveAs(folder+'/combochnscomparisonlumiall.eps')
+canvas.SaveAs(folder+'/combochnscomparison3abinv.pdf')
+canvas.SaveAs(folder+'/combochnscomparison3abinv.png')
+canvas.SaveAs(folder+'/combochnscomparison3abinv.eps')

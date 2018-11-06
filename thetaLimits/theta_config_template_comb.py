@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-import os,sys,math,pickle
+import os,sys,math,pickle,json
 
 inputSL = 'dummy.root'
 inputAH = 'dummy.root'
@@ -8,6 +8,45 @@ inputAH = 'dummy.root'
 rFileName = inputSL.split('/')[-1].replace('.root','')
 
 thisDir = os.getcwd()
+		
+##################################################################################################################
+
+systslj={
+'eff_el':.01,
+'eff_mu':.005,
+'lumi':.01,
+'jec':.02,
+'jer':.03,
+'btag':.01,
+'mistag':.10,
+'ttag':.05,
+'pdf':.024,
+'muRF_ttbar':.04, #B2G-17-017-V9: ~30%, scaled by lumi
+'muRF_wjets':.03, #B2G-17-017-V9: ~25%, scaled by lumi
+'xsec_ttbar':.03, #B2G-17-017-V9: 20%, scaled by lumi
+'xsec_sitop':.06, #B2G-17-017-V9: 50%, scaled by lumi
+'xsec_wjets':.03, #B2G-17-017-V9: 25%, scaled by lumi
+'xsec_zjets':.06, #B2G-17-017-V9: 50%, scaled by lumi
+'xsec_dibos':.06, #B2G-17-017-V9: 50%, scaled by lumi
+'xsec_qcd':.06, #B2G-17-017-V9: 50%, scaled by lumi
+}
+systslj['xsec_other']=math.sqrt(systslj['xsec_sitop']**2+systslj['xsec_wjets']**2+systslj['xsec_zjets']**2+systslj['xsec_dibos']**2+systslj['xsec_qcd']**2+systslj['muRF_wjets']**2)
+
+systsaj={
+'lumi':.01,
+'jec':.02,
+'jer':.03,
+'btag':.01,
+'mistag':.10,
+'ttag':.05,
+'pdf':.024,
+'muRF_ttbar':.04, #B2G-17-017-V9: ~30%, scaled by lumi
+'xsec_ttbar':.03, #B2G-17-017-V9: 20%, scaled by lumi
+'modmass':.02,
+'closure':.05,
+}
+
+##################################################################################################################
 
 def getNSigmaCrossSecMin(model, N=5, errorMax=0.001):
 	outFile=open(rFileName+'_'+str(N)+'sigmaSignif.txt','w')
@@ -27,7 +66,7 @@ def getNSigmaCrossSecMin(model, N=5, errorMax=0.001):
 			
 	while True:
 		
-		#clean_workdir()
+		clean_workdir()
 		signif=exp_significance_approx(model)
 		
 		for signal in signals:
@@ -55,273 +94,147 @@ def getNSigmaCrossSecMin(model, N=5, errorMax=0.001):
 		
 	for signal in signals:
 		model.scale_predictions(1/beta[signal],signal)
+
+##################################################################################################################
+
+def get_model_ljets(incMCstat=True, isStatOnly=False, systFact=1):
+	model = build_model_from_rootfile(inputSL,include_mc_uncertainties=incMCstat)#,histogram_filter = (lambda s: s.count('jec')==0 and s.count('jer')==0)
+	
+	model.fill_histogram_zerobins()
+	model.set_signal_processes('sig')
 		
+	if not isStatOnly:
+		procs = model.processes
+		obsvs = model.observables.keys()
+		for obs in obsvs:
+			if 'isE' in obs:
+				try: model.add_lognormal_uncertainty('eff_el', math.log(1.0+systFact*systslj['eff_el']), '*', obs)
+				except: pass
+			elif 'isM' in obs:
+				try: model.add_lognormal_uncertainty('eff_mu', math.log(1.0+systFact*systslj['eff_mu']), '*', obs)
+				except: pass
+		try: model.add_lognormal_uncertainty('lumi', math.log(1.0+systFact*systslj['lumi']), '*', '*')
+		except: pass
+		#try: model.add_lognormal_uncertainty('jec', math.log(1.0+systFact*systslj['jec']), '*', '*')
+		#except: pass
+		try: model.add_lognormal_uncertainty('jer', math.log(1.0+systFact*systslj['jer']), '*', '*')
+		except: pass
+		if any(['_nB' in obs for obs in obsvs]):
+			try: model.add_lognormal_uncertainty('btag', math.log(1.0+systFact*systslj['btag']), '*', '*')
+			except: pass
+			try: model.add_lognormal_uncertainty('mistag', math.log(1.0+systFact*systslj['mistag']), '*', '*')
+			except: pass
+		try: model.add_lognormal_uncertainty('ttag', math.log(1.0+systFact*systslj['ttag']), '*', '*')
+		except: pass
+		try: model.add_lognormal_uncertainty('pdf', math.log(1.0+systFact*systslj['pdf']), '*', '*')
+		except: pass
+		for proc in procs:
+			if proc=='ttbar':
+				try: model.add_lognormal_uncertainty('xsec_ttbar', math.log(1.0+systFact*systslj['xsec_ttbar']), proc, '*') #B2G-17-017-V9: 20%, scaled by lumi
+				except: pass
+				try: model.add_lognormal_uncertainty('muRF_ttbar', math.log(1.0+systFact*systslj['muRF_ttbar']), proc, '*') #B2G-17-017-V9: ~30%, scaled by lumi
+				except: pass
+			elif proc=='sitop':
+				try: model.add_lognormal_uncertainty('xsec_sitop', math.log(1.0+systFact*systslj['xsec_sitop']), proc, '*') #B2G-17-017-V9: 50%, scaled by lumi
+				except: pass
+			elif proc=='wjets':
+				try: model.add_lognormal_uncertainty('xsec_wjets', math.log(1.0+systFact*systslj['xsec_wjets']), proc, '*') #B2G-17-017-V9: 25%, scaled by lumi
+				except: pass
+				try: model.add_lognormal_uncertainty('muRF_wjets', math.log(1.0+systFact*systslj['muRF_wjets']), proc, '*') #B2G-17-017-V9: ~25%, scaled by lumi
+				except: pass
+			elif proc=='zjets':
+				try: model.add_lognormal_uncertainty('xsec_zjets', math.log(1.0+systFact*systslj['xsec_zjets']), proc, '*') #B2G-17-017-V9: 50%, scaled by lumi
+				except: pass
+			elif proc=='dibos':
+				try: model.add_lognormal_uncertainty('xsec_dibos', math.log(1.0+systFact*systslj['xsec_dibos']), proc, '*') #B2G-17-017-V9: 50%, scaled by lumi
+				except: pass
+			elif proc=='qcd':
+				try: model.add_lognormal_uncertainty('xsec_qcd', math.log(1.0+systFact*systslj['xsec_qcd']), proc, '*') #B2G-17-017-V9: 50%, scaled by lumi
+				except: pass
+			elif proc=='other':
+				try: model.add_lognormal_uncertainty('xsec_other', math.log(1.0+systFact*systslj['xsec_other']), proc, '*')
+				except: pass
+			
+	return model
+
 ##################################################################################################################
 
-systslj={
-'eff_el':.01,
-'eff_mu':.005,
-'lumi':.01,
-'jec':.035,
-'jer':.03,
-'btag':.01,
-'mistag':.10,
-'ttag':.05,
-'pdf':.024,
-'muRF_ttbar':.04, #B2G-17-017-V9: ~30%, scaled by lumi
-'muRF_wjets':.03, #B2G-17-017-V9: ~25%, scaled by lumi
-'xsec_ttbar':.03, #B2G-17-017-V9: 20%, scaled by lumi
-'xsec_sitop':.06, #B2G-17-017-V9: 50%, scaled by lumi
-'xsec_wjets':.03, #B2G-17-017-V9: 25%, scaled by lumi
-'xsec_zjets':.06, #B2G-17-017-V9: 50%, scaled by lumi
-'xsec_dibos':.06, #B2G-17-017-V9: 50%, scaled by lumi
-'xsec_qcd':.06, #B2G-17-017-V9: 50%, scaled by lumi
-}
-systslj['xsec_other']=math.sqrt(systslj['xsec_sitop']**2+systslj['xsec_wjets']**2+systslj['xsec_zjets']**2+systslj['xsec_dibos']**2+systslj['xsec_qcd']**2+systslj['muRF_wjets']**2)
-
-systsaj={
-'lumi':.01,
-'jec':.035,
-'jer':.03,
-'btag':.01,
-'mistag':.10,
-'ttag':.05,
-'pdf':.024,
-'muRF_ttbar':.04, #B2G-17-017-V9: ~30%, scaled by lumi
-'xsec_ttbar':.03, #B2G-17-017-V9: 20%, scaled by lumi
-'modmass':.02,
-'closure':.05,
-}
-
-##################################################################################################################
-
-def get_model_ljets():
-	model = build_model_from_rootfile(inputSL,include_mc_uncertainties=False)#,histogram_filter = (lambda s: s.count('jec')==0 and s.count('jer')==0)
+def get_model_alljets(incMCstat=True, isStatOnly=False, systFact=1):
+	model = build_model_from_rootfile(inputAH,include_mc_uncertainties=incMCstat)#,histogram_filter = (lambda s: s.count('jec')==0 and s.count('jer')==0)
 	
 	model.fill_histogram_zerobins()
 	model.set_signal_processes('sig')
 	
-	procs = model.processes
-	obsvs = model.observables.keys()
-	
-	for obs in obsvs:
-		if 'isE' in obs:
-			try: model.add_lognormal_uncertainty('eff_el', math.log(1.0+systslj['eff_el']), '*', obs)
-			except: pass
-		elif 'isM' in obs:
-			try: model.add_lognormal_uncertainty('eff_mu', math.log(1.0+systslj['eff_mu']), '*', obs)
-			except: pass
-	try: model.add_lognormal_uncertainty('lumi', math.log(1.0+systslj['lumi']), '*', '*')
-	except: pass
-	try: model.add_lognormal_uncertainty('jec', math.log(1.0+systslj['jec']), '*', '*')
-	except: pass
-	try: model.add_lognormal_uncertainty('jer', math.log(1.0+systslj['jer']), '*', '*')
-	except: pass
-	if 'nobtagcats' not in thisDir:
-		try: model.add_lognormal_uncertainty('btag', math.log(1.0+systslj['btag']), '*', '*')
-		except: pass
-		try: model.add_lognormal_uncertainty('mistag', math.log(1.0+systslj['mistag']), '*', '*')
-		except: pass
-	try: model.add_lognormal_uncertainty('ttag', math.log(1.0+systslj['ttag']), '*', '*')
-	except: pass
-	try: model.add_lognormal_uncertainty('pdf', math.log(1.0+systslj['pdf']), '*', '*')
-	except: pass
-	for proc in procs:
-		if proc=='ttbar':
-			try: model.add_lognormal_uncertainty('xsec_ttbar', math.log(1.0+systslj['xsec_ttbar']), proc, '*') #B2G-17-017-V9: 20%, scaled by lumi
-			except: pass
-			try: model.add_lognormal_uncertainty('muRF_ttbar', math.log(1.0+systslj['muRF_ttbar']), proc, '*') #B2G-17-017-V9: ~30%, scaled by lumi
-			except: pass
-		elif proc=='sitop':
-			try: model.add_lognormal_uncertainty('xsec_sitop', math.log(1.0+systslj['xsec_sitop']), proc, '*') #B2G-17-017-V9: 50%, scaled by lumi
-			except: pass
-		elif proc=='wjets':
-			try: model.add_lognormal_uncertainty('xsec_wjets', math.log(1.0+systslj['xsec_wjets']), proc, '*') #B2G-17-017-V9: 25%, scaled by lumi
-			except: pass
-			try: model.add_lognormal_uncertainty('muRF_wjets', math.log(1.0+systslj['muRF_wjets']), proc, '*') #B2G-17-017-V9: ~25%, scaled by lumi
-			except: pass
-		elif proc=='zjets':
-			try: model.add_lognormal_uncertainty('xsec_zjets', math.log(1.0+systslj['xsec_zjets']), proc, '*') #B2G-17-017-V9: 50%, scaled by lumi
-			except: pass
-		elif proc=='dibos':
-			try: model.add_lognormal_uncertainty('xsec_dibos', math.log(1.0+systslj['xsec_dibos']), proc, '*') #B2G-17-017-V9: 50%, scaled by lumi
-			except: pass
-		elif proc=='qcd':
-			try: model.add_lognormal_uncertainty('xsec_qcd', math.log(1.0+systslj['xsec_qcd']), proc, '*') #B2G-17-017-V9: 50%, scaled by lumi
-			except: pass
-		elif proc=='other':
-			try: model.add_lognormal_uncertainty('xsec_other', math.log(1.0+systslj['xsec_other']), proc, '*')
-			except: pass
-			
-	return model
-
-def get_model_ljets_statOnly():
-	model = build_model_from_rootfile(inputSL,include_mc_uncertainties=True)#,histogram_filter = (lambda s: s.count('jec')==0 and s.count('jer')==0)
-	
-	model.fill_histogram_zerobins()
-	model.set_signal_processes('sig')
-			
-	return model
-
-def get_model_ljets_2xSyst():
-	model = build_model_from_rootfile(inputSL,include_mc_uncertainties=False)#,histogram_filter = (lambda s: s.count('jec')==0 and s.count('jer')==0)
-	
-	model.fill_histogram_zerobins()
-	model.set_signal_processes('sig')
-	
-	procs = model.processes
-	obsvs = model.observables.keys()
-	
-	for obs in obsvs:
-		if 'isE' in obs:
-			try: model.add_lognormal_uncertainty('eff_el', math.log(1.0+2*systslj['eff_el']), '*', obs)
-			except: pass
-		elif 'isM' in obs:
-			try: model.add_lognormal_uncertainty('eff_mu', math.log(1.0+2*systslj['eff_mu']), '*', obs)
-			except: pass
-	try: model.add_lognormal_uncertainty('lumi', math.log(1.0+2*systslj['lumi']), '*', '*')
-	except: pass
-	try: model.add_lognormal_uncertainty('jec', math.log(1.0+2*systslj['jec']), '*', '*')
-	except: pass
-	try: model.add_lognormal_uncertainty('jer', math.log(1.0+2*systslj['jer']), '*', '*')
-	except: pass
-	if 'nobtagcats' not in thisDir:
-		try: model.add_lognormal_uncertainty('btag', math.log(1.0+2*systslj['btag']), '*', '*')
-		except: pass
-		try: model.add_lognormal_uncertainty('mistag', math.log(1.0+2*systslj['mistag']), '*', '*')
-		except: pass
-	try: model.add_lognormal_uncertainty('ttag', math.log(1.0+2*systslj['ttag']), '*', '*')
-	except: pass
-	try: model.add_lognormal_uncertainty('pdf', math.log(1.0+2*systslj['pdf']), '*', '*')
-	except: pass
-	for proc in procs:
-		if proc=='ttbar':
-			try: model.add_lognormal_uncertainty('xsec_ttbar', math.log(1.0+2*systslj['xsec_ttbar']), proc, '*') #B2G-17-017-V9: 20%, scaled by lumi
-			except: pass
-			try: model.add_lognormal_uncertainty('muRF_ttbar', math.log(1.0+2*systslj['muRF_ttbar']), proc, '*') #B2G-17-017-V9: ~30%, scaled by lumi
-			except: pass
-		elif proc=='sitop':
-			try: model.add_lognormal_uncertainty('xsec_sitop', math.log(1.0+2*systslj['xsec_sitop']), proc, '*') #B2G-17-017-V9: 50%, scaled by lumi
-			except: pass
-		elif proc=='wjets':
-			try: model.add_lognormal_uncertainty('xsec_wjets', math.log(1.0+2*systslj['xsec_wjets']), proc, '*') #B2G-17-017-V9: 25%, scaled by lumi
-			except: pass
-			try: model.add_lognormal_uncertainty('muRF_wjets', math.log(1.0+2*systslj['muRF_wjets']), proc, '*') #B2G-17-017-V9: ~25%, scaled by lumi
-			except: pass
-		elif proc=='zjets':
-			try: model.add_lognormal_uncertainty('xsec_zjets', math.log(1.0+2*systslj['xsec_zjets']), proc, '*') #B2G-17-017-V9: 50%, scaled by lumi
-			except: pass
-		elif proc=='dibos':
-			try: model.add_lognormal_uncertainty('xsec_dibos', math.log(1.0+2*systslj['xsec_dibos']), proc, '*') #B2G-17-017-V9: 50%, scaled by lumi
-			except: pass
-		elif proc=='qcd':
-			try: model.add_lognormal_uncertainty('xsec_qcd', math.log(1.0+2*systslj['xsec_qcd']), proc, '*') #B2G-17-017-V9: 50%, scaled by lumi
-			except: pass
-		elif proc=='other':
-			try: model.add_lognormal_uncertainty('xsec_other', math.log(1.0+2*systslj['xsec_other']), proc, '*')
-			except: pass
-			
-	return model
-
-def get_model_alljets():
-	model = build_model_from_rootfile(inputAH,include_mc_uncertainties=False)#,histogram_filter = (lambda s: s.count('jec')==0 and s.count('jer')==0)
-	
-	model.fill_histogram_zerobins()
-	model.set_signal_processes('sig')
-	
-	procs = model.processes
-	
-	for proc in procs:
-		if proc!='qcd':
-			try: model.add_lognormal_uncertainty('lumi', math.log(1.0+systsaj['lumi']), proc, '*')
-			except: pass
-			try: model.add_lognormal_uncertainty('jec', math.log(1.0+systsaj['jec']), proc, '*')
-			except: pass
-			try: model.add_lognormal_uncertainty('jer', math.log(1.0+systsaj['jer']), proc, '*')
-			except: pass
-			try: model.add_lognormal_uncertainty('btag', math.log(1.0+systsaj['btag']), proc, '*')
-			except: pass
-			try: model.add_lognormal_uncertainty('mistag', math.log(1.0+systsaj['mistag']), proc, '*')
-			except: pass
-			try: model.add_lognormal_uncertainty('ttag', math.log(1.0+systsaj['ttag']), proc, '*')
-			except: pass
-			try: model.add_lognormal_uncertainty('pdf', math.log(1.0+systsaj['pdf']), proc, '*')
-			except: pass
-		if proc=='ttbar':
-			try: model.add_lognormal_uncertainty('xsec_ttbar', math.log(1.0+systsaj['xsec_ttbar']), proc, '*')
-			except: pass
-			try: model.add_lognormal_uncertainty('muRF_ttbar', math.log(1.0+systsaj['muRF_ttbar']), proc, '*')
-			except: pass
-		if proc=='qcd':
-			try: model.add_lognormal_uncertainty('modmass', math.log(1.0+systsaj['modmass']), proc, '*')
-			except: pass
-			try: model.add_lognormal_uncertainty('closure', math.log(1.0+systsaj['closure']), proc, '*')
-			except: pass
+	if not isStatOnly:
+		procs = model.processes
+		for proc in procs:
+			if proc!='qcd':
+				try: model.add_lognormal_uncertainty('lumi', math.log(1.0+systFact*systsaj['lumi']), proc, '*')
+				except: pass
+				#try: model.add_lognormal_uncertainty('jec', math.log(1.0+systFact*systsaj['jec']), proc, '*')
+				#except: pass
+				try: model.add_lognormal_uncertainty('jer', math.log(1.0+systFact*systsaj['jer']), proc, '*')
+				except: pass
+				try: model.add_lognormal_uncertainty('btag', math.log(1.0+systFact*systsaj['btag']), proc, '*')
+				except: pass
+				try: model.add_lognormal_uncertainty('mistag', math.log(1.0+systFact*systsaj['mistag']), proc, '*')
+				except: pass
+				try: model.add_lognormal_uncertainty('ttag', math.log(1.0+systFact*systsaj['ttag']), proc, '*')
+				except: pass
+				try: model.add_lognormal_uncertainty('pdf', math.log(1.0+systFact*systsaj['pdf']), proc, '*')
+				except: pass
+			if proc=='ttbar':
+				try: model.add_lognormal_uncertainty('xsec_ttbar', math.log(1.0+systFact*systsaj['xsec_ttbar']), proc, '*')
+				except: pass
+				try: model.add_lognormal_uncertainty('muRF_ttbar', math.log(1.0+systFact*systsaj['muRF_ttbar']), proc, '*')
+				except: pass
+			if proc=='qcd':
+				try: model.add_lognormal_uncertainty('modmass', math.log(1.0+systFact*systsaj['modmass']), proc, '*')
+				except: pass
+				try: model.add_lognormal_uncertainty('closure', math.log(1.0+systFact*systsaj['closure']), proc, '*')
+				except: pass
 			
 	return model	
 
-def get_model_alljets_statOnly():
-	model = build_model_from_rootfile(inputAH,include_mc_uncertainties=True)#,histogram_filter = (lambda s: s.count('jec')==0 and s.count('jer')==0)
-	
-	model.fill_histogram_zerobins()
-	model.set_signal_processes('sig')
-			
-	return model
-
-def get_model_alljets_2xSyst():
-	model = build_model_from_rootfile(inputAH,include_mc_uncertainties=False)#,histogram_filter = (lambda s: s.count('jec')==0 and s.count('jer')==0)
-	
-	model.fill_histogram_zerobins()
-	model.set_signal_processes('sig')
-	
-	procs = model.processes
-	
-	for proc in procs:
-		if proc!='qcd':
-			try: model.add_lognormal_uncertainty('lumi', math.log(1.0+2*systsaj['lumi']), proc, '*')
-			except: pass
-			try: model.add_lognormal_uncertainty('jec', math.log(1.0+2*systsaj['jec']), proc, '*')
-			except: pass
-			try: model.add_lognormal_uncertainty('jer', math.log(1.0+2*systsaj['jer']), proc, '*')
-			except: pass
-			try: model.add_lognormal_uncertainty('btag', math.log(1.0+2*systsaj['btag']), proc, '*')
-			except: pass
-			try: model.add_lognormal_uncertainty('mistag', math.log(1.0+2*systsaj['mistag']), proc, '*')
-			except: pass
-			try: model.add_lognormal_uncertainty('ttag', math.log(1.0+2*systsaj['ttag']), proc, '*')
-			except: pass
-			try: model.add_lognormal_uncertainty('pdf', math.log(1.0+2*systsaj['pdf']), proc, '*')
-			except: pass
-		if proc=='ttbar':
-			try: model.add_lognormal_uncertainty('xsec_ttbar', math.log(1.0+2*systsaj['xsec_ttbar']), proc, '*')
-			except: pass
-			try: model.add_lognormal_uncertainty('muRF_ttbar', math.log(1.0+2*systsaj['muRF_ttbar']), proc, '*')
-			except: pass
-		if proc=='qcd':
-			try: model.add_lognormal_uncertainty('modmass', math.log(1.0+2*systsaj['modmass']), proc, '*')
-			except: pass
-			try: model.add_lognormal_uncertainty('closure', math.log(1.0+2*systsaj['closure']), proc, '*')
-			except: pass
-			
-	return model	
+##################################################################################################################
 
 model = get_model_ljets()
 alljetsModel = get_model_alljets()
 model.combine(alljetsModel)
+model_summary(model)
 
 ##################################################################################################################
 
-model_summary(model)
+xsec = {}
+xsec['ZpM2000']  = 1.3*1.153
+xsec['ZpM3000']  = 1.3*1.556*0.1
+xsec['ZpM4000']  = 1.3*3.585*0.01
+xsec['ZpM5000']  = 1.3*1.174*0.01
+xsec['ZpM6000']  = 1.3*4.939*0.001
+xsec['ZpM8000']  = 1.3*1.403*0.001
+xsec['ZpM10000'] = 1.3*5.527*0.0001
+xsec['ZpM12000'] = 1.3*2.622*0.0001
+xsec['ZpW30M2000']  = xsec['ZpM2000']
+xsec['ZpW30M3000']  = xsec['ZpM3000']
+xsec['ZpW30M4000']  = xsec['ZpM4000']
+xsec['ZpW30M5000']  = xsec['ZpM5000']
+xsec['ZpW30M6000']  = xsec['ZpM6000']
+xsec['ZpW30M8000']  = xsec['ZpM8000']
+xsec['ZpW30M10000'] = xsec['ZpM10000']
+xsec['ZpW30M12000'] = xsec['ZpM12000']
+xs=xsec[rFileName.split('_')[2]]
+print "xsec["+rFileName.split('_')[2]+"] =",xs
 
-options = Options()
-options.set('minimizer', 'strategy', 'robust')
-options.set('minimizer', 'minuit_tolerance_factor', '100')
+##################################################################################################################
 
 doLimits = True
 if doLimits:
-	#exp, obs = bayesian_limits(model,'expected', n_toy = 100000, n_data = 1000, run_theta = 'True')
-	exp, obs = bayesian_limits(model,'expected', n_toy = 5000, n_data = 500, run_theta = 'True')
+	#exp, obs = bayesian_limits(model, what='expected', n_toy = 100000, n_data = 1000, run_theta = 'True')
+	exp, obs = bayesian_limits(model, what='expected', n_toy = 5000, n_data = 500, run_theta = 'True')
 	exp.write_txt('limits_'+rFileName+'_expected.txt')
+	options = Options()
+	options.set('minimizer', 'strategy', 'robust')
+	options.set('minimizer', 'minuit_tolerance_factor', '100')
 	exp_acls, obs_acls = asymptotic_cls_limits(model, use_data=False, signal_process_groups={'': ['sig']}, beta_signal_expected=0.0, bootstrap_model=False, options=options)#, input=None, n=1)
 	f_acls = open('limits_'+rFileName+'_acls_expected.txt', 'w')
 	print >>f_acls, exp_acls
@@ -332,12 +245,28 @@ if doLimits:
 # 	f_cls.close()
 
 else: #N sigma discovery reaches (NOTE that this implementation currently works only with utils/theta-auto.py, check if this is OK or if it can be implemented in utils2 easily!!!)
-	getNSigmaCrossSecMin(model,5,0.01)
-	getNSigmaCrossSecMin(model,3,0.01)
+	signal_process_groups = {'sig': ['sig']}
+	exp_disc = discovery(model,spid='sig',use_data=False,Z_error_max=0.1,input_expected='toys:%f' % xs,ts_method=derll)
+	#exp_disc = discovery(model, spid = 'sig', use_data = False, input_expected = 'toys:%f' % xs, maxit = 2, n = 1000000)
+	print exp_disc
+	f_disc = open(rFileName+'.json', 'w')
+	json.dump(exp_disc, f_disc)
+# 	options = Options()
+# 	options.set('minimizer', 'strategy', 'robust')
+# 	options.set('minimizer', 'minuit_tolerance_factor', '100')
+# 	exp_zval = zvalue_approx(model, input='toys:0.0', n=1, signal_process_groups={'': ['sig']}, nuisance_constraint=None, nuisance_prior_toys=None, options=options, eventid_info=False, signal_prior_sb='flat')
+# 	print exp_zval
+# 	f_sig = open('zvalue_'+rFileName+'_expected.txt', 'w')
+# 	print >>f_sig, exp_zval
+# 	f_sig.close()
+	try: getNSigmaCrossSecMin(model,3,0.01)
+	except: pass
+	try: getNSigmaCrossSecMin(model,5,0.01)
+	except: pass
 
-#report.write_html('htmlout_'+rFileName)
+report.write_html('htmlout_'+rFileName)
 
-doPostfit=False
+doPostfit=True
 if doLimits and doPostfit:
 	options = Options()
 	options.set('minimizer', 'strategy', 'robust')
