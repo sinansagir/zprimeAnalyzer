@@ -78,7 +78,12 @@ def underflow(h):
 	h.SetBinError(1,error)
 	h.SetBinContent(0,0)
 	h.SetBinError(0,0)
-	    
+
+def findidx_nearest(thelist, val):
+    difflist = [abs(i-val) for i in thelist]
+    idx = difflist.index(min(difflist))
+    return idx
+    	    
 ##############################################################################
 #Printing tables
 

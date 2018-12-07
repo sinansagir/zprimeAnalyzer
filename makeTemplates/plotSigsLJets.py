@@ -8,21 +8,26 @@ import CMS_lumi, tdrstyle
 
 rt.gROOT.SetBatch(1)
 
-lumi=3000 #for plots
+lumi="15 ab^{-1}" #for plots
+lumiInTemplates='15000p0fbinv'
 catList = ['isE','isM']
 iPlots = ['genzpMass','zpMass']
-signals = ['ZpM2000','ZpM3000','ZpM4000','ZpM5000','ZpM6000']
-signals = ['ZpM2000','ZpM4000','ZpM6000']
+massList = range(4000,12000+1,2000)
+sigs = ['ZpM'+str(mass) for mass in massList]
 isRebinned = ''#'_rebinned_stat1p0'
-theDir = './kinematics_SR_2018_8_29/'
+saveKey = ''
+theDir = './kinematics_SR_halveStatUnc_2018_10_31/'
 yLog  = False
 
 Rfiles = {}
-for sig in signals:
-	for iPlot in iPlots: Rfiles[sig+'_'+iPlot] = rt.TFile(theDir+'templates_'+iPlot+'_'+sig+'_3000p0fbinv.root')
-legs   = {'ZpM2000':'RSG (2 TeV)','ZpM3000':'RSG (3 TeV)','ZpM4000':'RSG (4 TeV)','ZpM5000':'RSG (5 TeV)','ZpM6000':'RSG (6 TeV)'}
-colors = {'ZpM2000':rt.kBlack,    'ZpM3000':rt.kRed,      'ZpM4000':rt.kOrange,   'ZpM5000':rt.kBlue,     'ZpM6000':rt.kGreen+3}
-lines  = {'ZpM2000':1,            'ZpM3000':3,            'ZpM4000':5,            'ZpM5000':7,            'ZpM6000':7,'zpMass':3,'genzpMass':1}
+for sig in sigs:
+	for iPlot in iPlots: Rfiles[sig+'_'+iPlot] = rt.TFile(theDir+'templates_'+iPlot+'_'+sig+'_'+lumiInTemplates+'.root')
+siglegs = {sigs[0]:'RSG (4 TeV)', sigs[1]:'RSG (6 TeV)',sigs[2]:'RSG (8 TeV)',sigs[3]:'RSG (10 TeV)',sigs[4]:'RSG (12 TeV)'}
+sigColors = {sigs[0]:rt.kBlack, sigs[1]:rt.kRed,sigs[2]:rt.kOrange,sigs[3]:rt.kBlue,sigs[4]:rt.kGreen+3}
+sigLines = {sigs[0]:1, sigs[1]:3,sigs[2]:5,sigs[3]:7,sigs[4]:7,'zpMass':3,'genzpMass':1}
+# siglegs = {sigs[0]:'Z\' 30% width (4 TeV)', sigs[1]:'Z\' 30% width (6 TeV)',sigs[2]:'Z\' 30% width (8 TeV)',sigs[3]:'Z\' 30% width (10 TeV)',sigs[4]:'Z\' 30% width (12 TeV)'}
+# sigColors = {sigs[0]:rt.kBlack, sigs[1]:rt.kRed,sigs[2]:rt.kOrange,sigs[3]:rt.kBlue,sigs[4]:rt.kGreen+3}
+# sigLines = {sigs[0]:1, sigs[1]:3,sigs[2]:5,sigs[3]:7,sigs[4]:7,'zpMass':3,'genzpMass':1}
 
 #set the tdr style
 tdrstyle.setTDRStyle()
@@ -33,7 +38,7 @@ CMS_lumi.lumi_8TeV = "18.3 fb^{-1}"
 CMS_lumi.lumi_13TeV= "35.9 fb^{-1}"
 CMS_lumi.writeExtraText = 1
 CMS_lumi.extraText = "Simulation"
-CMS_lumi.lumi_sqrtS = str(lumi)+" fb^{-1} (14 TeV)" # used with iPeriod = 0, e.g. for simulation-only plots (default is an empty string)
+CMS_lumi.lumi_sqrtS = str(lumi)+" (27 TeV)" # used with iPeriod = 0, e.g. for simulation-only plots (default is an empty string)
 
 iPos = 11
 if( iPos==0 ): CMS_lumi.relPosX = 0.12
@@ -76,19 +81,20 @@ def formatUpperHist(histogram):
 	else: histogram.SetMaximum(1.1*histogram.GetMaximum())
 
 hSigs = {}
-for sig in signals:
+for sig in sigs:
 	for iPlot in iPlots:
-		hSigs[sig+'_'+iPlot] = Rfiles[sig+'_'+iPlot].Get(iPlot+'_3000p0fbinv_'+catList[0]+'__sig').Clone(iPlot+'_3000p0fb_'+sig)
+		hSigs[sig+'_'+iPlot] = Rfiles[sig+'_'+iPlot].Get(iPlot+'_'+lumiInTemplates+'_'+catList[0]+'__sig').Clone(iPlot+'_'+lumiInTemplates+'_'+sig)
 		for cat in catList:
 			if cat==catList[0]: continue
-			hSigs[sig+'_'+iPlot].Add(Rfiles[sig+'_'+iPlot].Get(iPlot+'_3000p0fbinv_'+cat+'__sig'))
+			hSigs[sig+'_'+iPlot].Add(Rfiles[sig+'_'+iPlot].Get(iPlot+'_'+lumiInTemplates+'_'+cat+'__sig'))
 		#hSigs[sig+'_'+iPlot].Rebin(2)
 		print sig,iPlot,cat,hSigs[sig+'_'+iPlot].Integral()
+		#if iPlot=='zpMass': hSigs[sig+'_'+iPlot].Scale(5.)
 		#hSigs[sig+'_'+iPlot].Scale(1./hSigs[sig+'_'+iPlot].Integral())
-		hSigs[sig+'_'+iPlot].SetLineColor(colors[sig])
+		hSigs[sig+'_'+iPlot].SetLineColor(sigColors[sig])
 		hSigs[sig+'_'+iPlot].SetFillStyle(0)
 		if len(iPlots)==1: hSigs[sig+'_'+iPlot].SetLineStyle(1)#lines[sig])
-		else: hSigs[sig+'_'+iPlot].SetLineStyle(lines[iPlot])
+		else: hSigs[sig+'_'+iPlot].SetLineStyle(sigLines[iPlot])
 		hSigs[sig+'_'+iPlot].SetLineWidth(3)
 
 c1 = rt.TCanvas("c1","c1",50,50,W,H)
@@ -115,19 +121,19 @@ uPad.SetFrameBorderMode(0)
 #uPad.SetTicky(0)
 uPad.Draw()
 
-formatUpperHist(hSigs[signals[0]+'_'+iPlots[0]])
+formatUpperHist(hSigs[sigs[0]+'_'+iPlots[0]])
 uPad.cd()
 
-hSigs[signals[0]+'_'+iPlots[0]].SetMinimum(0.00101)
-#hSigs[signals[0]+'_'+iPlots[0]].SetMaximum(5.e1*hSigs[signals[0]+'_'+iPlots[0]].GetMaximum())
-hSigs[signals[0]+'_'+iPlots[0]].SetMaximum(1.2*hSigs[signals[0]+'_'+iPlots[0]].GetMaximum())
-#hSigs[signals[0]+'_'+iPlots[0]].GetXaxis().SetRangeUser(0, 4000)
-hSigs[signals[0]+'_'+iPlots[0]].GetXaxis().SetTitle("M(t#bar{t})")
-hSigs[signals[0]+'_'+iPlots[0]].GetYaxis().SetTitle("Events")
-hSigs[signals[0]+'_'+iPlots[0]].Draw("HIST")
-for sig in signals: 
+hSigs[sigs[0]+'_'+iPlots[0]].SetMinimum(0.00101)
+#hSigs[sigs[0]+'_'+iPlots[0]].SetMaximum(5.e1*hSigs[sigs[0]+'_'+iPlots[0]].GetMaximum())
+hSigs[sigs[0]+'_'+iPlots[0]].SetMaximum(1.2*hSigs[sigs[0]+'_'+iPlots[0]].GetMaximum())
+#hSigs[sigs[0]+'_'+iPlots[0]].GetXaxis().SetRangeUser(0, 4000)
+#hSigs[sigs[0]+'_'+iPlots[0]].GetXaxis().SetTitle("M(t#bar{t}) [GeV]")
+hSigs[sigs[0]+'_'+iPlots[0]].GetYaxis().SetTitle("Events")
+hSigs[sigs[0]+'_'+iPlots[0]].Draw("HIST")
+for sig in sigs: 
 	for iPlot in iPlots:
-		if sig==signals[0] and iPlot==iPlots[0]: continue
+		if sig==sigs[0] and iPlot==iPlots[0]: continue
 		hSigs[sig+'_'+iPlot].Draw("SAME HIST")
 uPad.RedrawAxis()
 
@@ -149,22 +155,23 @@ leg.SetBorderSize(0)
 leg.SetNColumns(1)
 leg.SetTextFont(62)#42)
 leg.SetColumnSeparation(0.05)
-leg.AddEntry(hSigs[signals[0]+'_'+iPlots[0]],"Generated","l")
-leg.AddEntry(hSigs[signals[0]+'_'+iPlots[1]],"Reconstructed","l")
-for sig in signals: 
-	leg.AddEntry(hSigs[sig+'_'+iPlots[0]],legs[sig],"l")
+if len(iPlots)!=1:
+	leg.AddEntry(hSigs[sigs[0]+'_'+iPlots[0]],"Generated","l")
+	leg.AddEntry(hSigs[sigs[0]+'_'+iPlots[1]],"Reconstructed","l")
+for sig in sigs: 
+	leg.AddEntry(hSigs[sig+'_'+iPlots[0]],siglegs[sig],"l")
 leg.Draw("same")
 
 #draw the lumi text on the canvas
 CMS_lumi.CMS_lumi(uPad, iPeriod, iPos)
 
 if len(iPlots)==1:
-	c1.SaveAs(theDir+'/'+iPlots[0]+'_signals_ljets'+".eps")
-	c1.SaveAs(theDir+'/'+iPlots[0]+'_signals_ljets'+".pdf")
-	c1.SaveAs(theDir+'/'+iPlots[0]+'_signals_ljets'+".png")
+	c1.SaveAs(theDir+'/'+iPlots[0]+'_signals27TeV_ljets'+saveKey+".eps")
+	c1.SaveAs(theDir+'/'+iPlots[0]+'_signals27TeV_ljets'+saveKey+".pdf")
+	c1.SaveAs(theDir+'/'+iPlots[0]+'_signals27TeV_ljets'+saveKey+".png")
 else:
-	c1.SaveAs(theDir+'/signals_ljets'+".eps")
-	c1.SaveAs(theDir+'/signals_ljets'+".pdf")
-	c1.SaveAs(theDir+'/signals_ljets'+".png")
+	c1.SaveAs(theDir+'/signals27TeV_ljets'+saveKey+".eps")
+	c1.SaveAs(theDir+'/signals27TeV_ljets'+saveKey+".pdf")
+	c1.SaveAs(theDir+'/signals27TeV_ljets'+saveKey+".png")
 	
 for sig in Rfiles.keys(): Rfiles[sig].Close()

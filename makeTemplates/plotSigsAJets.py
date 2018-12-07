@@ -14,7 +14,7 @@ iPlots = ['zp_m']#,'zp_m']
 signals = ['rsg2','rsg3','rsg4','rsg5','rsg6']
 #signals = ['rsg2','rsg4','rsg6']
 isRebinned = ''#'_rebinned_stat1p0'
-theDir = './templates_alljets_2018_9_11/'
+theDir = './templates_alljets_2018_10_10/'
 yLog  = False
 
 Rfiles = {}

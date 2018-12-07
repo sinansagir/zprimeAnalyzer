@@ -14,7 +14,7 @@ gROOT.SetBatch(1)
 start_time = time.time()
 
 lumiStr = str(targetlumi/1000).replace('.','p') # 1/fb
-step1Dir = '/user_data/ssagir/DAnalysis_framework/v.1.1_rc2_special_d3.4.2p15/DAnalysis/DAnalysis_workdir/output_27tev/'
+step1Dir = '/user_data/ssagir/DAnalysis_framework/v.1.2_YR.v.1.1/DAnalysis/DAnalysis_workdir/27TeV_2018_10_21/nominal/'
 
 """
 Note: 
@@ -26,19 +26,22 @@ The uncertainty shape shifted files will be taken from <step1Dir>/../<shape>/<pr
 """
 
 bkgList = [
-#'TTinc',
+'ttHT500to1000','ttHT1000to2000','ttHT2000to5000','ttHT5000to10000','ttHT10000to27000',
 't123j',
-'VJ',
-'mumu',
+'VjHT500to1000','VjHT1000to2000','VjHT2000to5000','VjHT5000to10000','VjHT10000to27000',
 'eeHT500to1000','eeHT1000to2000','eeHT2000to5000','eeHT5000to10000','eeHT10000to27000',
-'VV',
-'jj',
+'mumuHT500to1000','mumuHT1000to2000','mumuHT2000to5000','mumuHT5000to10000','mumuHT10000to27000',
+'VVHT500to1000','VVHT1000to2000','VVHT2000to5000','VVHT5000to10000','VVHT10000to27000',
+'jjHT500to1000','jjHT1000to2000','jjHT2000to5000','jjHT5000to10000','jjHT10000to27000',
 ]
 dataList = ['Data']
 
-whichSignal = 'Zp' #HTB, TT, BB, or X53X53
+massList = range(4000,12000+1,2000)
+sigList = ['ZpM'+str(mass) for mass in massList]
 massList = range(2000,10000+1,2000)
-sigList = [whichSignal+'M'+str(mass) for mass in massList]
+sigList+= ['ZpW1M'+str(mass) for mass in massList]
+massList = range(4000,12000+1,2000)
+sigList+= ['ZpW30M'+str(mass) for mass in massList]
 decays = ['']
 
 iPlot = 'zpMass' #choose a discriminant from plotList below!
@@ -47,7 +50,7 @@ region = 'SR'
 if len(sys.argv)>3: region=sys.argv[3]
 isCategorized = 1
 if len(sys.argv)>4: isCategorized=int(sys.argv[4])
-doAllSys= False
+doAllSys= True
 doQ2sys = False
 q2List  = [#energy scale sample to be processed
 	       'TTJetsPHQ2U','TTJetsPHQ2D']
@@ -90,7 +93,7 @@ def readTree(file):
 	return tFile, tTree 
 
 print "READING TREES"
-shapesFiles = ['jec','jer']
+shapesFiles = ['jec']#,'jer']
 tTreeData = {}
 tFileData = {}
 for data in dataList:
@@ -141,10 +144,10 @@ plotList = {#discriminantName:(discriminantNtupleName, binning, xAxisLabel)
 	'lepAbsIso':('lepAbsIso',linspace(0, 1, 51).tolist(),';Lepton AbsIso'),
 	'metPt':('metPt',linspace(0, 1500, 51).tolist(),';p^{miss}_{T} [GeV]'),
 	'leadJetPt':('leadJetPt',linspace(0, 3000, 51).tolist(),';p_{T}(j_{1}) [GeV]'),
-	'leadJetEta':('leadJetEta',linspace(-3, 3, 51).tolist(),';j_{1} #eta'),
+	'leadJetEta':('leadJetEta',linspace(-4, 4, 51).tolist(),';j_{1} #eta'),
 	'leadJetPhi':('leadJetPhi',linspace(-4, 4, 51).tolist(),';j_{1} #phi'),
 	'subLeadJetPt':('subLeadJetPt',linspace(0, 1500, 51).tolist(),';p_{T}(j_{2}) [GeV]'),
-	'subLeadJetEta':('subLeadJetEta',linspace(-3, 3, 51).tolist(),';j_{2} #eta'),
+	'subLeadJetEta':('subLeadJetEta',linspace(-4, 4, 51).tolist(),';j_{2} #eta'),
 	'subLeadJetPhi':('subLeadJetPhi',linspace(-4, 4, 51).tolist(),';j_{2} #phi'),
 	'tlepLeadAK4Pt':('tlepLeadAK4Pt',linspace(0, 1500, 51).tolist(),';p_{T}(j_{1} in leptonic t) [GeV]'),
 	'NJetsSel':('NJetsSel',linspace(0, 15, 16).tolist(),';AK4 jet multiplicity'),
@@ -153,26 +156,27 @@ plotList = {#discriminantName:(discriminantNtupleName, binning, xAxisLabel)
 	'deltaR_ljets0':('deltaR_ljets[0]',linspace(0, 5, 51).tolist(),';#DeltaR(l, j_{1})'),
 	'deltaR_ljets1':('deltaR_ljets[1]',linspace(0, 5, 51).tolist(),';#DeltaR(l, j_{2})'),
 	'WlepPt':('WlepPt',linspace(0, 3000, 51).tolist(),';p^{rec}_{T}(W) [GeV]'),
-	'WlepMass':('WlepMass',linspace(75, 90, 51).tolist(),';M^{rec}(W) [GeV]'),
+	'WlepMass':('WlepMass',linspace(75, 90, 51).tolist(),';m^{rec}(W) [GeV]'),
 	'thadPt':('thadPt',linspace(0, 3000, 51).tolist(),';p^{rec}_{T}(hadronic t) [GeV]'),
-	'thadMass':('thadMass',linspace(50, 300, 51).tolist(),';M^{rec}(hadronic t) [GeV]'),
+	'thadMass':('thadMass',linspace(50, 300, 51).tolist(),';m^{rec}(hadronic t) [GeV]'),
 	'thadChi2':('thadChi2',linspace(0, 100, 51).tolist(),';#chi^{2}(hadronic t)'),
 	'tlepPt':('tlepPt',linspace(0, 3000, 51).tolist(),';p^{rec}_{T}(leptonic t) [GeV]'),
-	'tlepMass':('tlepMass',linspace(50, 300, 51).tolist(),';M^{rec}(leptonic t) [GeV]'),
+	'tlepMass':('tlepMass',linspace(50, 300, 51).tolist(),';m^{rec}(leptonic t) [GeV]'),
 	'tlepChi2':('tlepChi2',linspace(0, 100, 51).tolist(),';#chi^{2}(leptonic t)'),
 	'topAK8Pt':('topAK8Pt',linspace(0, 3000, 51).tolist(),';p_{T}(tagged t) [GeV]'),
-	'topAK8Eta':('topAK8Eta',linspace(-3, 3, 51).tolist(),';tagged t #eta'),
+	'topAK8Eta':('topAK8Eta',linspace(-4, 4, 51).tolist(),';tagged t #eta'),
 	'topAK8Phi':('topAK8Phi',linspace(-4, 4, 51).tolist(),';tagged t #phi'),
-	'topAK8Mass':('topAK8Mass',linspace(0, 300, 51).tolist(),';M(tagged t) [GeV]'),
+	'topAK8Mass':('topAK8Mass',linspace(0, 300, 51).tolist(),';m(tagged t) [GeV]'),
 	'topAK8Tau32':('topAK8Tau32',linspace(0, 1, 51).tolist(),';#tau_{3}/#tau_{2}(tagged t)'),
-	'topAK8SDMass':('topAK8SDMass',linspace(0, 300, 51).tolist(),';M_{S-D}(tagged t) [GeV]'),
+	'topAK8SDMass':('topAK8SDMass',linspace(0, 300, 51).tolist(),';m_{S-D}(tagged t) [GeV]'),
 	'Ntoptagged':('Ntoptagged',linspace(0, 3, 4).tolist(),';t tag multiplicity'),
 
 	'zpDeltaR':('zpDeltaR',linspace(0, 5, 51).tolist(),';#DeltaR(t_{1}, t_{2})'),
 	'zpDeltaY':('zpDeltaY',linspace(0, 5, 51).tolist(),';#DeltaY(t_{1}, t_{2})'),
 	'zpPt':('zpPt',linspace(0, 2000, 51).tolist(),';p_{T}(t#bar{t}) [GeV]'),
-	'zpMass':('zpMass',linspace(0, 12000, 241).tolist(),';M_{rec}(t#bar{t}) [GeV]'),
-	'genzpMass':('genzpMass',linspace(0, 12000, 241).tolist(),';M_{gen}(t#bar{t}) [GeV]'),
+	'zpMass':('zpMass',linspace(0, 10000, 201).tolist(),';m_{t#bar{t}} [GeV]'),
+	'genzpMass':('genzpMass',linspace(0, 10000, 201).tolist(),';m^{gen}_{t#bar{t}} [GeV]'),
+	'genTTorJJMass':('genTTorJJMass',linspace(0, 10000, 201).tolist(),';m^{gen}_{t#bar{t}} [GeV]'),
 		
 	'NJets_vs_NBJets':('NJets_JetSubCalc:NJetsCSV_JetSubCalc',linspace(0, 15, 16).tolist(),';AK4 jet multiplicity',linspace(0, 10, 11).tolist(),';b-tagged jet multiplicity'),
 

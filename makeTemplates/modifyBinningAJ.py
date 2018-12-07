@@ -29,10 +29,10 @@ start_time = time.time()
 #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 iPlot='zpMass'
-lumi='3000p0fbinv'
+lumi='15000p0fbinv'
 if len(sys.argv)>1: iPlot=str(sys.argv[1])
 cutString = ''
-templateDir = os.getcwd()+'/templates_halveStatUnc_2018_10_31/'+cutString
+templateDir = os.getcwd()+'/templates_alljets_halveStatUnc_2018_10_31/'+cutString
 combinefile = 'templates_'+iPlot+'_'+lumi+'.root'
 
 quiet = True #if you don't want to see the warnings that are mostly from the stat. shape algorithm!
@@ -41,7 +41,7 @@ doStatShapes = False
 normalizeRENORM = True #only for signals
 normalizePDF    = True #only for signals
 #X53X53, TT, BB, HTB, etc --> this is used to identify signal histograms for combine templates when normalizing the pdf and muRF shapes to nominal!!!!
-sigName = 'ZpW30' #MAKE SURE THIS WORKS FOR YOUR ANALYSIS PROPERLY!!!!!!!!!!!
+sigName = 'Zp' #MAKE SURE THIS WORKS FOR YOUR ANALYSIS PROPERLY!!!!!!!!!!!
 massList = range(4000,12000+1,2000)
 if 'kinematics_PS' in templateDir: massList = [1000,1300]
 sigProcList = [sigName+'M'+str(mass) for mass in massList]
@@ -50,7 +50,7 @@ sigName+'M2000':3000,sigName+'M4000':5500,sigName+'M6000':8000,sigName+'M8000':1
 }
 #bkgProcList = ['ttbar','sitop','wjets','zjets','dibos','qcd'] #put the most dominant process first
 #bkgProcList = ['top','ewk','qcd'] #put the most dominant process first
-bkgProcList = ['ttbar','other']
+bkgProcList = ['ttbar','qcd']
 era = "13TeV"
 
 minNbins=1 #min number of bins to be merged
@@ -59,7 +59,7 @@ statThres = 0.05 #statistical uncertainty threshold on total background to assig
 #if len(sys.argv)>1: stat=float(sys.argv[1])
 singleBinCR = False
 symmetrizeTopPtShift = False
-isEMlist = ['E','M']
+isEMlist = ['E']#,'M']
 if iPlot=='minMlb': minNbins=3 #min 15GeV bin width
 if iPlot=='HT' or iPlot=='ST': minNbins=8 #min 40GeV bin width
 
@@ -138,51 +138,39 @@ for chn in totBkgHists.keys():
 	if 'is'+isEMlist[0] not in chn: continue
 	xbinsListTemp[chn]=[totBkgHists[chn].GetXaxis().GetBinUpEdge(totBkgHists[chn].GetXaxis().GetNbins())]
 	Nbins = totBkgHists[chn].GetNbinsX()
-	totTempBinContent_E = 0.
-	totTempBinContent_M = 0.
-	totTempBinErrSquared_E = 0.
-	totTempBinErrSquared_M = 0.
-	totDataTempBinContent_E = 0.
-	totDataTempBinContent_M = 0.
-	totDataTempBinErrSquared_E = 0.
-	totDataTempBinErrSquared_M = 0.
-	nBinsMerged = 0
-	for iBin in range(1,Nbins+1):
-		totTempBinContent_E += totBkgHists[chn].GetBinContent(Nbins+1-iBin)
-		totTempBinContent_M += totBkgHists[chn.replace('is'+isEMlist[0],'is'+isEMlist[1])].GetBinContent(Nbins+1-iBin)
-		totTempBinErrSquared_E += totBkgHists[chn].GetBinError(Nbins+1-iBin)**2
-		totTempBinErrSquared_M += totBkgHists[chn.replace('is'+isEMlist[0],'is'+isEMlist[1])].GetBinError(Nbins+1-iBin)**2
-		totDataTempBinContent_E += dataHists_[chn].GetBinContent(Nbins+1-iBin)
-		totDataTempBinContent_M += dataHists_[chn.replace('is'+isEMlist[0],'is'+isEMlist[1])].GetBinContent(Nbins+1-iBin)
-		totDataTempBinErrSquared_E += dataHists_[chn].GetBinError(Nbins+1-iBin)**2
-		totDataTempBinErrSquared_M += dataHists_[chn.replace('is'+isEMlist[0],'is'+isEMlist[1])].GetBinError(Nbins+1-iBin)**2
-		nBinsMerged+=1
-		if nBinsMerged<minNbins: continue
-		if totTempBinContent_E>0. and totTempBinContent_M>0.:
-			if math.sqrt(totTempBinErrSquared_E)/totTempBinContent_E<=stat and math.sqrt(totTempBinErrSquared_M)/totTempBinContent_M<=stat:
-				#if totDataTempBinContent_E==0. or totDataTempBinContent_M==0.: continue
-				#if math.sqrt(totDataTempBinErrSquared_E)/totDataTempBinContent_E>0.45 or math.sqrt(totDataTempBinErrSquared_M)/totDataTempBinContent_M>0.45: continue
-				totTempBinContent_E = 0.
-				totTempBinContent_M = 0.
-				totTempBinErrSquared_E = 0.
-				totTempBinErrSquared_M = 0.
-				totDataTempBinContent_E = 0.
-				totDataTempBinContent_M = 0.
-				totDataTempBinErrSquared_E = 0.
-				totDataTempBinErrSquared_M = 0.
-				nBinsMerged=0
-				xbinsListTemp[chn].append(totBkgHists[chn].GetXaxis().GetBinLowEdge(Nbins+1-iBin))
-	if xbinsListTemp[chn][-1]!=totBkgHists[chn].GetXaxis().GetBinLowEdge(1): xbinsListTemp[chn].append(totBkgHists[chn].GetXaxis().GetBinLowEdge(1))
-	if totBkgHists[chn].GetBinContent(1)==0. or totBkgHists[chn.replace('is'+isEMlist[0],'is'+isEMlist[1])].GetBinContent(1)==0.: 
-		if len(xbinsListTemp[chn])>2: del xbinsListTemp[chn][-2]
-	elif totBkgHists[chn].GetBinError(1)/totBkgHists[chn].GetBinContent(1)>stat or totBkgHists[chn.replace('is'+isEMlist[0],'is'+isEMlist[1])].GetBinError(1)/totBkgHists[chn.replace('is'+isEMlist[0],'is'+isEMlist[1])].GetBinContent(1)>stat: 
-		if len(xbinsListTemp[chn])>2: del xbinsListTemp[chn][-2]
-	xbinsListTemp[chn.replace('is'+isEMlist[0],'is'+isEMlist[1])]=xbinsListTemp[chn]
 	if stat>1.0:
 		xbinsListTemp[chn] = [totBkgHists[chn].GetXaxis().GetBinUpEdge(totBkgHists[chn].GetXaxis().GetNbins())]
 		for iBin in range(1,Nbins+1): 
 			xbinsListTemp[chn].append(totBkgHists[chn].GetXaxis().GetBinLowEdge(Nbins+1-iBin))
-		xbinsListTemp[chn.replace('is'+isEMlist[0],'is'+isEMlist[1])] = xbinsListTemp[chn]
+		if len(isEMlist)>1: xbinsListTemp[chn.replace('is'+isEMlist[0],'is'+isEMlist[1])] = xbinsListTemp[chn]
+	else:
+		totTempBinContent_E = 0.
+		totTempBinErrSquared_E = 0.
+		totDataTempBinContent_E = 0.
+		totDataTempBinErrSquared_E = 0.
+		nBinsMerged = 0
+		for iBin in range(1,Nbins+1):
+			totTempBinContent_E += totBkgHists[chn].GetBinContent(Nbins+1-iBin)
+			totTempBinErrSquared_E += totBkgHists[chn].GetBinError(Nbins+1-iBin)**2
+			totDataTempBinContent_E += dataHists_[chn].GetBinContent(Nbins+1-iBin)
+			totDataTempBinErrSquared_E += dataHists_[chn].GetBinError(Nbins+1-iBin)**2
+			nBinsMerged+=1
+			if nBinsMerged<minNbins: continue
+			if totTempBinContent_E>0.:
+				if math.sqrt(totTempBinErrSquared_E)/totTempBinContent_E<=stat:
+					#if totDataTempBinContent_E==0. or totDataTempBinContent_M==0.: continue
+					#if math.sqrt(totDataTempBinErrSquared_E)/totDataTempBinContent_E>0.45 or math.sqrt(totDataTempBinErrSquared_M)/totDataTempBinContent_M>0.45: continue
+					totTempBinContent_E = 0.
+					totTempBinErrSquared_E = 0.
+					totDataTempBinContent_E = 0.
+					totDataTempBinErrSquared_E = 0.
+					nBinsMerged=0
+					xbinsListTemp[chn].append(totBkgHists[chn].GetXaxis().GetBinLowEdge(Nbins+1-iBin))
+		if xbinsListTemp[chn][-1]!=totBkgHists[chn].GetXaxis().GetBinLowEdge(1): xbinsListTemp[chn].append(totBkgHists[chn].GetXaxis().GetBinLowEdge(1))
+		if totBkgHists[chn].GetBinContent(1)==0.: 
+			if len(xbinsListTemp[chn])>2: del xbinsListTemp[chn][-2]
+		elif totBkgHists[chn].GetBinError(1)/totBkgHists[chn].GetBinContent(1)>stat: 
+			if len(xbinsListTemp[chn])>2: del xbinsListTemp[chn][-2]
 
 print "==> Here is the binning I found with",stat*100,"% uncertainty threshold: "
 print "//"*40
@@ -218,10 +206,13 @@ for rfile in rfiles:
 		print "         ",chn
 		if stat>1.0:
 			themass = sigBinMax[sigName+rfile.split(sigName)[-1].split('_')[0]]
-			xbinsList[chn] = xbinsList_[chn][:xbinsList_[chn].index(themass)+1]+[xbinsList_[chn][-1]] #= xbinsList[chn]
+			xbinsList[chn] = xbinsList_[chn][:findidx_nearest(xbinsList_[chn],themass)+1]+[xbinsList_[chn][-1]] #= xbinsList[chn]
 			if xbinsList[chn][-1]==xbinsList[chn][-2]: del xbinsList[chn][-2]
 			xbins[chn] = array('d', xbinsList[chn])
 		else: xbinsList[chn] = xbinsList_[chn]
+		#print xbinsList[chn]
+		#del xbinsList[chn][1]
+		#del xbinsList[chn][1]
 		print xbinsList[chn]
 		rebinnedHists = {}
 		#Rebinning histograms

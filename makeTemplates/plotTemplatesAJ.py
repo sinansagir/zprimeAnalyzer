@@ -20,13 +20,13 @@ isCategorized=1
 iPlot='zpMass'
 if len(sys.argv)>1: iPlot=str(sys.argv[1])
 cutString=''#'DY1.0_1jet400_2jet400'
-if region=='SR': pfix='templates_'
+if region=='SR': pfix='templates_alljets_'
 elif region=='WJCR': pfix='wjets_'
 elif region=='TTCR': pfix='ttbar_'
 if not isCategorized: pfix='kinematics_'+region+'_'
 templateDir=os.getcwd()+'/'+pfix+'halveStatUnc_2018_10_31/'+cutString+'/'
 
-isRebinned='_rebinned_stat0p1'#'_rebinned_stat0p1'#'_rebinned_stat1p1'#'_rebinned_stat1p1' #post for ROOT file names
+isRebinned='_rebinned_stat0p1'#'_rebinned_stat1p1' #post for ROOT file names
 saveKey = '_v2'# tag for plot names
 signal = 'Zp'
 
@@ -55,10 +55,10 @@ else:
 # sigLines = {sigs[0]:1, sigs[1]:3,sigs[2]:5,sigs[3]:7,sigs[4]:7}
 
 scaleSignals = False
-sigScaleFact = -1 #put -1 if auto-scaling wanted
+sigScaleFact = 20 #put -1 if auto-scaling wanted
 tempsig='templates_'+iPlot+'_'+sigs[0]+'_'+lumiInTemplates+'fbinv'+isRebinned+'.root'
 
-bkgProcList = ['ttbar','other']#,'sitop','wjets','zjets','dibos','qcd']
+bkgProcList = ['ttbar','qcd']#,'sitop','wjets','zjets','dibos','qcd']
 bkgHistColors = {'ttbar':rt.kRed-9,'sitop':rt.kRed-5,'wjets':rt.kBlue-7,'zjets':rt.kBlue-3,'dibos':rt.kBlue,'qcd':rt.kOrange-5,'ewk':rt.kBlue-7,'other':rt.kOrange-5}
 proclegs = {'ttbar':'t#bar{t}','sitop':'Single top','wjets':'W+jets','zjets':'Z+jets','dibos':'VV','qcd':'QCD','data':'Data','ewk':'EW','other':'Other'}
 
@@ -71,7 +71,6 @@ doOneBand = False
 if not doAllSys: doOneBand = True # Don't change this!
 blind = True
 yLog  = True
-if yLog: scaleSignals = False
 doRealPull = False
 if doRealPull: doOneBand=False
 compareShapes = False
@@ -79,10 +78,11 @@ if compareShapes: blind,yLog,scaleSignals,sigScaleFact=True,False,False,-1
 drawYields = False
 doChi2KStests = False
 
-isEMlist  = ['E','M']
-nttaglist = ['0','1']
+plotEMmerged = False
+isEMlist  = ['E']#,'M']
+nttaglist = ['0p']
 nWtaglist = ['0p']
-nbtaglist = ['0p']#,'0','1']
+nbtaglist = ['0','1','2']
 if not isCategorized: 
 	nttaglist = ['0p']
 	nbtaglist = ['0p']
@@ -100,13 +100,14 @@ lumiSys = 0.01 #lumi uncertainty
 lepIdIsoSys = 0.01 #lepton id/iso uncertainty
 jesSys = 0.02 #JES uncertainty
 jerSys = 0.03 #JER uncertainty
-btagSys = 0.0#5 #b-tagging uncertainty
+btagSys = 0.01 #b-tagging uncertainty
+mistagSys = 0.10 #b-tagging uncertainty
 ttagSys = 0.05 #t-tagging uncertainty
 puSys = 0.0#3 #Pileup uncertainty
 pdfSys = 0.024 #PDF uncertainty
 murfSys = 0.0 #Renorm/Fact. scale uncertainty
 
-corrdSys = math.sqrt(lumiSys**2+lepIdIsoSys**2+jesSys**2+jerSys**2+btagSys**2+ttagSys**2+puSys**2+pdfSys**2+murfSys**2) #cheating while total e/m values are close
+corrdSys = math.sqrt(lumiSys**2+lepIdIsoSys**2+jesSys**2+jerSys**2+btagSys**2+mistagSys**2+ttagSys**2+puSys**2+pdfSys**2+murfSys**2) #cheating while total e/m values are close
 
 modelingSys = {}
 modelingSys['ttbar'] = math.sqrt(0.03**2+0.04**2) #ttbar x-sec and muRF uncertainty
@@ -114,7 +115,7 @@ modelingSys['sitop'] = 0.06 #Single top x-sec uncertainty
 modelingSys['wjets'] = math.sqrt(0.03**2+0.03**2) #W+jets x-sec and muRF uncertainty
 modelingSys['zjets'] = 0.06 #Z+jets x-sec uncertainty
 modelingSys['dibos'] = 0.06 #Diboson x-sec uncertainty
-modelingSys['qcd']   = 0.06 #QCD x-sec uncertainty
+modelingSys['qcd']   = math.sqrt(0.02**2+0.05**2) #QCD DDBkg uncertainty
 modelingSys['other'] = math.sqrt(modelingSys['sitop']**2+modelingSys['wjets']**2+modelingSys['zjets']**2+modelingSys['dibos']**2+modelingSys['qcd']**2)
 
 def getNormUnc(hist,ibin,modelingUnc):
@@ -125,6 +126,7 @@ def getNormUnc(hist,ibin,modelingUnc):
 
 def formatUpperHist(histogram,themax):
 	histogram.GetXaxis().SetLabelSize(0)
+	#histogram.GetXaxis().SetRange(0,10000)
 	if 'NTJets' in histogram.GetName(): histogram.GetXaxis().SetNdivisions(5)
 	elif 'NWJets' in histogram.GetName(): histogram.GetXaxis().SetNdivisions(5)
 	elif 'NBJets' in histogram.GetName(): histogram.GetXaxis().SetNdivisions(6,rt.kFALSE)
@@ -143,7 +145,7 @@ def formatUpperHist(histogram,themax):
 		histogram.GetYaxis().SetTitleOffset(.71)
 	if 'YLD' in iPlot: histogram.GetXaxis().LabelsOption("u")
 
-	if 'nB0' in histogram.GetName() and 'minMlb' in histogram.GetName() and 'YLD' not in iPlot: histogram.GetXaxis().SetTitle("min[M(l,j)], j#neqb [GeV]")
+	if 'zpMass' in histogram.GetName(): histogram.GetXaxis().SetTitle("m_{t#bar{t}} [GeV]")
 	#if 'JetPt' in histogram.GetName() or 'JetEta' in histogram.GetName(): histogram.GetYaxis().SetTitle(histogram.GetYaxis().GetTitle().replace("Events","Jets"))
 	#histogram.GetYaxis().CenterTitle()
 	histogram.SetMinimum(0.0001)
@@ -152,7 +154,7 @@ def formatUpperHist(histogram,themax):
 		histogram.SetMinimum(0.015)
 	if yLog:
 		uPad.SetLogy()
-		histogram.SetMaximum(1e4*themax)
+		histogram.SetMaximum(1e3*themax)
 	else: 
 		if 'YLD' in iPlot: histogram.SetMaximum(1.3*histogram.GetMaximum())
 		else: histogram.SetMaximum(1.3*histogram.GetMaximum())
@@ -348,7 +350,11 @@ for tag in tagList:
 			if scaleFacts[sig]==0: scaleFacts[sig]=1
 			if sigScaleFact>0: 
 				scaleFacts[sig]=sigScaleFact
-				if tag[0]=='0': scaleFacts[sig]=sigScaleFact*5
+				if tag[2]=='0': scaleFacts[sig]=sigScaleFact*20
+				if tag[2]=='1': scaleFacts[sig]=sigScaleFact*2
+				if isEM=='M': 
+					scaleFacts[sig]=scaleFacts[sig]/2
+					if tag[2]=='2': scaleFacts[sig]=scaleFacts[sig]/2
 			if not scaleSignals: scaleFacts[sig]=1
 			sighists[sig+catStr].Scale(scaleFacts[sig])
 			
@@ -458,10 +464,10 @@ for tag in tagList:
 			elif isRebinned!='': sighists[sigs[0]+catStr].GetYaxis().SetTitle("Events / bin")
 			else: sighists[sigs[0]+catStr].GetYaxis().SetTitle("Events / bin")
 			formatUpperHist(sighists[sigs[0]+catStr],stackbkgHT.GetMaximum())
-			#sighists[sigs[0]+catStr].SetMaximum(stackbkgHT.GetMaximum())
+			#sighists[sigs[0]+catStr].SetMaximum(hData.GetMaximum())
 			sighists[sigs[0]+catStr].Draw("HIST")
 		else: 
-			formatUpperHist(hData,hData.GetMaximum())
+			formatUpperHist(hData)
 			if 'rebinned_stat0p' in isRebinned: hData.Draw("esamex1")
 			else: hData.Draw("esamex0")
 		stackbkgHT.Draw("SAME HIST")
@@ -486,8 +492,9 @@ for tag in tagList:
 		tagString = ''
 # 		if isEM=='LT': flvString+='|#DeltaY(j_{1},j_{2})| #leq 1'#'e+jets'
 # 		if isEM=='GT': flvString+='|#DeltaY(j_{1},j_{2})| > 1'#'#mu+jets'
-		if isEM=='E': flvString+='e+jets'
-		if isEM=='M': flvString+='#mu+jets'
+		chnString = 'Fully hadronic'
+		if isEM=='E': flvString+='#Deltay < 1'
+		if isEM=='M': flvString+='#Deltay > 1'
 		if tag[0]!='0p': 
 			if 'p' in tag[0]: tagString+='#geq'+tag[0][:-1]+' t, '
 			else: tagString+=tag[0]+' t, '
@@ -502,8 +509,11 @@ for tag in tagList:
 			else: tagString+=tag[3]+' j'
 		if tagString.endswith(', '): tagString = tagString[:-2]
 		if tagString!='': tagString+=' tag'
-		chLatex.DrawLatex(tagPosX, tagPosY, flvString)
-		chLatex.DrawLatex(tagPosX, tagPosY-0.06, tagString)
+		chLatex.DrawLatex(tagPosX, tagPosY, chnString)
+		if len(isEMlist)==1: chLatex.DrawLatex(tagPosX, tagPosY-0.05, tagString)
+		else:
+			chLatex.DrawLatex(tagPosX, tagPosY-0.05, flvString)
+			chLatex.DrawLatex(tagPosX, tagPosY-0.10, tagString)
 
 		if plotForPAS: leg = rt.TLegend(0.55,0.54,0.9,0.87)
 		else: leg = rt.TLegend(0.45,0.54,0.9,0.87)
@@ -681,7 +691,8 @@ for tag in tagList:
 		#c1.Write()
 		savePrefix = templateDir.replace(cutString,'')+templateDir.split('/')[-2]+'plots/'
 		if not os.path.exists(savePrefix): os.system('mkdir '+savePrefix)
-		savePrefix+=histPrefix+isRebinned.replace('_rebinned_stat1p1','')+saveKey
+		savePrefix+=histPrefix.replace('isE','isLT').replace('isM','isGT')+isRebinned.replace('_rebinned_stat1p1','')+saveKey
+		if len(isEMlist)==1: savePrefix=savePrefix.replace('_isLT','')
 		if '000p0fbinv' in savePrefix: savePrefix=savePrefix.replace('000p0fbinv','abinv')
 		if nttaglist[0]=='0p': savePrefix=savePrefix.replace('nT0p_','')
 		if nWtaglist[0]=='0p': savePrefix=savePrefix.replace('nW0p_','')
@@ -705,6 +716,7 @@ for tag in tagList:
 			except: pass
 					
 	# Making plots for e+jets/mu+jets combined #
+	if not plotEMmerged: continue
 	histPrefixE = iPlot+'_'+lumiInTemplates+'fbinv_is'+isEMlist[0]+'_'+tagStr
 	histPrefixM = iPlot+'_'+lumiInTemplates+'fbinv_is'+isEMlist[1]+'_'+tagStr
 	histPrefixE = histPrefixE.replace('nT0p_','').replace('nW0p_','').replace('nB0p_','').replace('_nJ0p','')
@@ -819,7 +831,11 @@ for tag in tagList:
 		if scaleFactsmerged[sig]==0: scaleFactsmerged[sig]=1
 		if sigScaleFact>0: 
 			scaleFactsmerged[sig]=sigScaleFact
-			if tag[0]=='0': scaleFactsmerged[sig]=sigScaleFact*5
+			if tag[2]=='0': scaleFacts[sig]=sigScaleFact*20
+			if tag[2]=='1': scaleFacts[sig]=sigScaleFact*2
+			if isEM=='M': 
+				scaleFacts[sig]=scaleFacts[sig]/2
+				if tag[2]=='2': scaleFacts[sig]=scaleFacts[sig]/2
 		if not scaleSignals: scaleFactsmerged[sig]=1
 		sighistsmerged[sig+'isL'+tagStr].Scale(scaleFactsmerged[sig])
 	
@@ -927,11 +943,11 @@ for tag in tagList:
 			sighistsmerged[sigs[0]+'isL'+tagStr].GetYaxis().SetTitle("Events / "+str(binWidth)+ " GeV")
 		elif isRebinned!='': sighistsmerged[sigs[0]+'isL'+tagStr].GetYaxis().SetTitle("Events / bin")
 		else: sighistsmerged[sigs[0]+'isL'+tagStr].GetYaxis().SetTitle("Events / bin")
-		formatUpperHist(sighistsmerged[sigs[0]+'isL'+tagStr],bkgHTmerged.GetMaximum())
+		formatUpperHist(sighistsmerged[sigs[0]+'isL'+tagStr],stackbkgHTmerged.GetMaximum())
 		#sighistsmerged[sigs[0]+'isL'+tagStr].SetMaximum(hDatamerged.GetMaximum())
 		sighistsmerged[sigs[0]+'isL'+tagStr].Draw("HIST")
 	else: 
-		formatUpperHist(hDatamerged,hDatamerged.GetMaximum())
+		formatUpperHist(hDatamerged)
 		if 'rebinned_stat0p' in isRebinned: hDatamerged.Draw("esamex1")
 		else: hDatamerged.Draw("esamex0")
 	stackbkgHTmerged.Draw("SAME HIST")
@@ -953,7 +969,7 @@ for tag in tagList:
 	chLatexmerged.SetNDC()
 	chLatexmerged.SetTextSize(0.05)
 	chLatexmerged.SetTextAlign(21) # align center
-	flvString = 'e/#mu+jets'
+	flvString = 'Fully hadronic'#'e/#mu+jets'
 	tagString = ''
 	if tag[0]!='0p':
 		if 'p' in tag[0]: tagString+='#geq'+tag[0][:-1]+' t, '
@@ -970,7 +986,7 @@ for tag in tagList:
 	if tagString.endswith(', '): tagString = tagString[:-2]
 	if tagString!='': tagString+=' tag'
 	chLatexmerged.DrawLatex(tagPosX, tagPosY, flvString)
-	chLatexmerged.DrawLatex(tagPosX, tagPosY-0.06, tagString)
+	chLatexmerged.DrawLatex(tagPosX, tagPosY-0.05, tagString)
 
 	legmerged = rt.TLegend(0.45,0.54,0.9,0.87)
 	rt.SetOwnership( legmerged, 0 )   # 0 = release (not keep), 1 = keep
@@ -1140,7 +1156,7 @@ for tag in tagList:
 	#c1merged.Write()
 	savePrefixmerged = templateDir.replace(cutString,'')+templateDir.split('/')[-2]+'plots/'
 	if not os.path.exists(savePrefixmerged): os.system('mkdir '+savePrefixmerged)
-	savePrefixmerged+=histPrefixE.replace('is'+isEMlist[0],'isL')+isRebinned.replace('_rebinned_stat1p1','')+saveKey
+	savePrefixmerged+=histPrefixE.replace('_is'+isEMlist[0],'')+isRebinned.replace('_rebinned_stat1p1','')+saveKey
 	if '000p0fbinv' in savePrefixmerged: savePrefixmerged=savePrefixmerged.replace('000p0fbinv','abinv')
 	if nttaglist[0]=='0p': savePrefixmerged=savePrefixmerged.replace('nT0p_','')
 	if nWtaglist[0]=='0p': savePrefixmerged=savePrefixmerged.replace('nW0p_','')
