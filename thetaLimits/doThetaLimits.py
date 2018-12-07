@@ -3,28 +3,30 @@
 import os,sys,fnmatch
 
 thisDir = os.getcwd()
-templateDir = thisDir+'/../makeTemplates/templates_zpMass_mergeprocs_2018_8_29'
+templateDir = thisDir+'/../makeTemplates/templates_halveStatUnc_2018_10_31'
 thetaConfigTemp = thisDir+'/theta_config_template_ljets.py'
-# templateDir = thisDir+'/../makeTemplates/templates_alljets_2018_9_11'
-# thetaConfigTemp = thisDir+'/theta_config_template_alljets.py'
-doLimits = True #else, it will run 3 and 5 sigma reaches
-do2xSyst = False
-doStatOnly = False
+templateDir = thisDir+'/../makeTemplates/templates_alljets_halveStatUnc_2018_10_31'
+thetaConfigTemp = thisDir+'/theta_config_template_alljets.py'
+doLimits = False #else, it will run 3 and 5 sigma reaches
+systScale = '1'
+doStatOnly = 'False'
+if not doLimits: thetaConfigTemp = thisDir+'/theta_config_template_disc_ljets.py'
+if not doLimits: thetaConfigTemp = thisDir+'/theta_config_template_disc_alljets.py'
 
 toFilter0 = []
 toFilter0 = ['__'+item+'__' for item in toFilter0]
 
 limitConfs = {#'<limit type>':[filter list]
-			  #'all':[],
+			  'all':[],
 			  #'isE':['isM'], #only electron channel
 			  #'isM':['isE'], #only muon channel
-			  'btagcats':['M__','E__','E_nB','M_nB','nT0__','nT1__'],
-			  'nobtagcats':['M__','E__','_nB'],
+			  #'btagcats':['M__','E__','E_nB','M_nB','nT0__','nT1__'],
+			  #'nobtagcats':['M__','E__','_nB'],
 			  }
 
-limitType = ''
-if do2xSyst: limitType += '_2xSyst'
-if doStatOnly: limitType += '_statOnly'
+limitType = '_the'#'_preARCwMCstat'
+if systScale!='1': limitType += '_'+systScale+'xSyst'
+if doStatOnly=='True': limitType += '_statOnly'
 limordisc = {0:'_disc',1:'_lim'}
 outputDir = '/user_data/ssagir/Zprime_limits_2018/'+templateDir.split('/')[-1]+limitType+limordisc[doLimits]+'/' #prevent writing these (they are large) to brux6 common area
 if not os.path.exists(outputDir): os.system('mkdir '+outputDir)
@@ -38,9 +40,9 @@ def findfiles(path, filtre):
 rootfilelist = []
 i=0
 for rootfile in findfiles(templateDir, '*.root'):
-    if 'rebinned_stat1p1' not in rootfile: continue
+    if 'rebinned_stat0p1' not in rootfile: continue
+    if 'templates_zpMass_Zp' not in rootfile: continue
     #if '3000p0fb' not in rootfile: continue
-    if 'fbinv' not in rootfile: continue
     if 'plots' in rootfile: continue
     if 'YLD' in rootfile: continue
     rootfilelist.append(rootfile)
@@ -55,19 +57,15 @@ def makeThetaConfig(rFile,outDir,toFilter):
 	with open(outDir+'/'+rFile.split('/')[-1].replace('.root','.py'),'w') as fout:
 		for line in thetaConfigLines:
 			if line.startswith('input ='): fout.write('input = \''+rFile+'\'')
+			elif line.startswith('def get_model(incMCstat=True'): 
+				fout.write('def get_model(incMCstat=True, isStatOnly='+doStatOnly+', systFact='+systScale+'):\n')
 			elif line.startswith('	model = build_model_from_rootfile('): 
 				if len(toFilter)!=0:
-					statUnc = 'False'
-					if doStatOnly: statUnc = 'True'
-					model='	model = build_model_from_rootfile(input,include_mc_uncertainties='+statUnc+',histogram_filter = (lambda s:  s.count(\''+toFilter[0]+'\')==0'
+					model='	model = build_model_from_rootfile(input,include_mc_uncertainties=incMCstat,histogram_filter = (lambda s:  s.count(\''+toFilter[0]+'\')==0'
 					for item in toFilter: 
 						if item!=toFilter[0]: model+=' and s.count(\''+item+'\')==0'
 					model+='))'
 					fout.write(model)
-				else: fout.write(line)
-			elif line.startswith('model = get_model'):
-				if do2xSyst: fout.write('model = get_model_2xSyst()\n')
-				elif doStatOnly: fout.write('model = get_model_statOnly()\n')
 				else: fout.write(line)
 			elif line.startswith('doLimits = '):
 				if doLimits: fout.write('doLimits = True\n')

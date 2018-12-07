@@ -10,18 +10,20 @@ import CMS_lumi, tdrstyle
 rt.gROOT.SetBatch(1)
 
 blind=True
-saveKey=''
+saveKey='_v2'#'_W30'
 signal = 'Zp'
-lumiStrs = {'36p0':'36','300p0':'300','1000p0':'1000','3000p0':'3000'}
+lumiStrs = {'36p0':'36 fb^{-1}','300p0':'300 fb^{-1}','1000p0':'1 ab^{-1}','3000p0':'3 ab^{-1}'}
+lumiStrs = {'300p0':'300 fb^{-1}','3000p0':'3 ab^{-1}'}
+#lumiStrs = {'3000p0':'3 ab^{-1}'}
 
-mass_str = ['2000','3000','4000','5000','6000']
-theory_xsec = [1.3*1.153,1.3*1.556*0.1,1.3*3.585*0.01,1.3*1.174*0.01,1.3*4.939*0.001]
+mass_str = ['2000','3000','4000','5000','6000','8000','10000','12000']
+theory_xsec = [1.3*1.153,1.3*1.556*0.1,1.3*3.585*0.01,1.3*1.174*0.01,1.3*4.939*0.001,1.3*1.403*0.001,1.3*5.527*0.0001,1.3*2.622*0.0001]
 theory_xsec_13tev = [1.3*0.9528,1.3*0.1289,1.3*0.02807,1.3*0.009095]
 
-scale_up = [0,0,0,0,0][:len(mass_str)]#%
-scale_dn = [0,0,0,0,0][:len(mass_str)]#%
-pdf_up   = [0,0,0,0,0][:len(mass_str)]#%
-pdf_dn   = [0,0,0,0,0][:len(mass_str)]#%
+scale_up = [0,0,0,0,0,0,0,0,0,0,0][:len(mass_str)]#%
+scale_dn = [0,0,0,0,0,0,0,0,0,0,0][:len(mass_str)]#%
+pdf_up   = [0,0,0,0,0,0,0,0,0,0,0][:len(mass_str)]#%
+pdf_dn   = [0,0,0,0,0,0,0,0,0,0,0][:len(mass_str)]#%
 
 mass   =array('d', [float(item)/1e3 for item in mass_str])
 masserr=array('d',[0 for i in range(len(mass))])
@@ -68,7 +70,7 @@ CMS_lumi.lumi_7TeV = "4.8 fb^{-1}"
 CMS_lumi.lumi_8TeV = "18.3 fb^{-1}"
 CMS_lumi.lumi_13TeV= "35.9 fb^{-1}"
 CMS_lumi.writeExtraText = 1
-CMS_lumi.extraText = "Simulation"
+CMS_lumi.extraText = "Simulation Preliminary"
 
 iPos = 11
 if( iPos==0 ): CMS_lumi.relPosX = 0.12
@@ -81,10 +83,10 @@ H = H_ref
 iPeriod = 0 #see CMS_lumi.py module for usage!
 
 # references for T, B, L, R
-T = 0.08*H_ref
-B = 0.14*H_ref 
-L = 0.14*W_ref
-R = 0.04*W_ref
+T = 0.10*H_ref
+B = 0.125*H_ref
+L = 0.12*W_ref
+R = 0.05*W_ref
 
 def PlotLimits(limitDir,limitFile,lumiStr,tempKey):
     histPrefix=discriminant+'_'+lumiStr+'fbinv'
@@ -181,6 +183,9 @@ def PlotLimits(limitDir,limitFile,lumiStr,tempKey):
 
     XaxisTitle = "RSG mass [TeV]"
     YaxisTitle = "#sigma(RSG #rightarrow t#bar{t}) [pb]"
+    if 'W' in signal: 
+		XaxisTitle = "Z' 30% width mass [TeV]"
+		YaxisTitle = "#sigma(Z' #rightarrow t#bar{t}) [pb]"
 
     expected95.Draw("a3")
     expected95.GetYaxis().SetRangeUser(.0008,8.0)
@@ -197,29 +202,30 @@ def PlotLimits(limitDir,limitFile,lumiStr,tempKey):
     theory_xsec_gr.SetLineColor(2)
     theory_xsec_gr.SetLineStyle(1)
     theory_xsec_gr.SetLineWidth(2)
-    theory_xsec_gr.Draw("3same") 
+    if 'W' not in signal: theory_xsec_gr.Draw("3same") 
     theory.SetLineColor(2)
     theory.SetLineStyle(1)
     theory.SetLineWidth(2)
-    theory.Draw("same")                                                             
+    if 'W' not in signal: theory.Draw("same")                                                             
         
     #draw the lumi text on the canvas
-    CMS_lumi.lumi_sqrtS = lumiPlot+" fb^{-1} (14 TeV)" # used with iPeriod = 0, e.g. for simulation-only plots (default is an empty string)
+    CMS_lumi.lumi_sqrtS = lumiPlot+" (14 TeV)" # used with iPeriod = 0, e.g. for simulation-only plots (default is an empty string)
     CMS_lumi.CMS_lumi(canvas, iPeriod, iPos)
 
-    legend = rt.TLegend(.37,.69,.94,.89) # top right
+    #legend = rt.TLegend(.50,.59,.94,.89) # top right
+    legend = rt.TLegend(.53,.59,.96,.89) # top right
+    if 'W' not in signal: legend.AddEntry(theory_xsec_gr, "Signal cross section", "l")
+    legend.AddEntry(expected, "Median expected", "l")
     if not blind: legend.AddEntry(observed, "95% CL observed", "lp")
     legend.AddEntry(expected68, "68% expected", "f")
-    legend.AddEntry(expected, "Median expected", "l")
     legend.AddEntry(expected95, "95% expected", "f")
-    legend.AddEntry(theory_xsec_gr, "Signal cross section", "l")
 
     legend.SetShadowColor(0)
     legend.SetFillStyle(0)
     legend.SetBorderSize(0)
     legend.SetFillColor(0)
     legend.SetLineColor(0)
-    legend.SetNColumns(2)
+    legend.SetNColumns(1)
     legend.Draw()
     
     canvas.cd()
@@ -231,37 +237,37 @@ def PlotLimits(limitDir,limitFile,lumiStr,tempKey):
     folder = '.'
     outDir=folder+'/'+limitDir.split('/')[-3][:-4]+'plots'
     if not os.path.exists(outDir): os.system('mkdir '+outDir)
-    plotName = 'LimitPlot_'+histPrefix+''+binning+saveKey+'_'+tempKey
-    if blind: plotName+='_blind'
+    plotName = 'LimitPlot_'+histPrefix+''+binning.replace('_rebinned_stat1p1','')+saveKey+'_'+tempKey
+    if '000p0fbinv' in plotName: plotName=plotName.replace('000p0fbinv','abinv')
+    #if blind: plotName+='_blind'
     canvas.SaveAs(outDir+'/'+plotName+'.eps')
     canvas.SaveAs(outDir+'/'+plotName+'.pdf')
     canvas.SaveAs(outDir+'/'+plotName+'.png')
     return round(limExpected,2), round(limObserved,2)
 
-doCLS='' #leave empty for Bayesian and '_acls' for asymptotic CLs limits
+doCLS='_acls' #leave empty for Bayesian and '_acls' for asymptotic CLs limits
 iPlotList=['zpMass']
-binnings = ['1p1']
-tempKeys=['btagcats','nobtagcats']
-#tempKeys=['all']
+binnings = ['0p1']
+tempKeys=['all']
 cutString=''
 dirs = {
-		'Zp20180823':'templates_zpMass_2018_8_23_lim',
-		'Zp20180823combo':'templates_zpMass_2018_8_23_combination_lim',
-		'Zp20180824alljets':'templates_alljets_2018_8_24_lim',
-		'Zp20180829':'templates_zpMass_2018_8_29_lim',
-		'Zp20180829combo':'templates_zpMass_2018_8_29_combination_lim',
-		'Zp201808292':'templates_zpMass_2018_8_29_2_lim',
-		'Zp201808292alljets':'templates_alljets_2018_9_11_2_lim',
-		'Zp20180829combo2':'templates_zpMass_2018_8_29_combination2_lim',
-		'Zp20180829Sept15':'templates_zpMass_2018_8_29_15Sept_lim',
-		'Zp20180829Sept15alljets':'templates_alljets_2018_9_11_15Sept_lim',
-		'Zp20180829comboSept15':'templates_zpMass_2018_8_29_comb_15Sept_lim',
-		'Zp20180829mergeprocs':'templates_zpMass_mergeprocs_2018_8_29_lim',
-		'Zp20180829mergeprocscomb':'templates_zpMass_mergeprocs_2018_8_29_comb_lim',
-		'Zp20180829mergeprocscombmistag':'templates_zpMass_mergeprocs_2018_8_29_comb_mistag_lim',
-		'Zp20180829mergeprocscombpreARC':'templates_zpMass_mergeprocs_2018_8_29_comb_preARC_lim',
+		'preARCajet':'templates_alljets_2018_9_20_preARC_lim',
+		'preARCljet':'templates_zpMass_mergeprocs_2018_8_29_preARC_lim',
+		'preARCcomb':'templates_zpMass_mergeprocs_2018_8_29_comb_preARC_lim',
+		'preARCcomb2xSyst':'templates_zpMass_mergeprocs_2018_8_29_comb_preARC_2xSyst_lim',
+		'wMCstat2xSyst':'templates_zpMass_mergeprocs_2018_8_29_comb_preARCwMCstat_2xSyst_lim',
+		'wMCstat':'templates_zpMass_mergeprocs_2018_8_29_comb_preARCwMCstat_lim',
+		'halveajet':'templates_alljets_halveNTMJ_2018_9_20_preARCwMCstat_lim',
+		'halveljet':'templates_zpMass_mergeprocs_halveNTMJ_2018_8_29_preARCwMCstat_lim',
+		'halvecomb':'templates_zpMass_mergeprocs_halveNTMJ_2018_8_29_comb_preARCwMCstat_lim',		
+		'20181014ajet':'templates_alljets_2018_10_14_lim',
+		'20181014ljet':'templates_zpMass_2018_10_19_lim',
+		'20181014comb':'templates_zpMass_2018_10_19_comb_lim',
+		'20181031halveStatUncajet':'templates_alljets_halveStatUnc_2018_10_31_lim',
+		'20181031halveStatUncljet':'templates_halveStatUnc_2018_10_31_lim',
+		'20181031halveStatUnccomb':'templates_halveStatUnc_2018_10_31_comb_lim',
 		}
-dirKeyList = ['Zp20180829mergeprocscombpreARC']
+dirKeyList = ['20181031halveStatUncajet','20181031halveStatUncljet','20181031halveStatUnccomb']
 
 expLims = {}
 obsLims = {}

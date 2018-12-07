@@ -16,18 +16,24 @@ lumiStrOrg = str(targetlumi/1000).replace('.','p') # 1/fb
 region='SR' #PS,SR,TTCR,WJCR
 isCategorized=0
 cutString=''
-if region=='SR': pfix='templates_zpMass_'
+if region=='SR': pfix='templates_'
 if not isCategorized: pfix='kinematics_'+region+'_'
-pfix+='mergeprocs_2018_8_29'
+pfix+='2018_10_31'
 outDir = os.getcwd()+'/'+pfix+'/'+cutString
 
 scaleSignalXsecTo1pb = True # this has to be "True" if you are making templates for limit calculation!!!!!!!!
+scaleStatUnc = True #scales the statistical uncertainties by 1/sqrt(newTargetlumi/36000)
+if scaleStatUnc: outDir=outDir.replace('_2018','_halveStatUnc_2018')
 scaleLumi = True
 newTargetlumi = 3000000.
-doAllSys = False
+halveNTMJ = False #Halves the non-ttbar backgrounds by 1/2
+doAllSys = True
+doPDFsys = False
 doQ2sys = False
-if not doAllSys: doQ2sys = False
-systematicList = ['pileup','jec','jer','topsf','toppt','muR','muF','muRFcorrd','btag','mistag']
+if not doAllSys: 
+	doPDFsys = False
+	doQ2sys = False
+systematicList = ['jec']#,'jer']
 normalizeRENORM_PDF = False #normalize the renormalization/pdf uncertainties to nominal templates --> normalizes signal processes only !!!!
 rebinBy = 2 #performs a regular rebinning with "Rebin(rebinBy)", put -1 if rebinning is not desired
 if not isCategorized: rebinBy = -1
@@ -58,13 +64,20 @@ topptProcs = []#['top','TTJets']
 bkgProcs['top_q2up'] = []#bkgProcs['T']+['TTJetsPHQ2U']#'TtWQ2U','TbtWQ2U']
 bkgProcs['top_q2dn'] = []#bkgProcs['T']+['TTJetsPHQ2D']#'TtWQ2D','TbtWQ2D']
 
-massList = range(2000,6000+1,1000)
+massList = range(2000,6000+1,1000)+range(8000,12000+1,2000)
 sigList = ['ZpM'+str(mass) for mass in massList]
+# massList = range(2000,4000+1,2000)
+# sigList+= ['ZpW1M'+str(mass) for mass in massList]
+# massList = range(2000,6000+1,1000)
+# sigList+= ['ZpW3M'+str(mass) for mass in massList]
+massList = range(2000,6000+1,1000)+range(8000,12000+1,2000)
+sigList+= ['ZpW30M'+str(mass) for mass in massList]
+
 
 isEMlist = ['E','M']
 nttaglist = ['0','1']
 nWtaglist = ['0p']
-nbtaglist = ['0p','0','1']
+nbtaglist = ['0p']#,'0','1']
 if not isCategorized: 
 	nttaglist = ['0p']
 	nbtaglist = ['0p']
@@ -78,7 +91,7 @@ for ind in range(len(tagList)): tagList[ind] = tagList[ind].replace('_nT0p','').
 lumiSys = 0.01 #lumi uncertainty
 elIdIsoSys = 0.01 #electron id/iso uncertainty
 muIdIsoSys = 0.005 #muon id/iso uncertainty
-jesSys = 0.035 #JES uncertainty
+jesSys = 0.0#35 #JES uncertainty
 jerSys = 0.03 #JER uncertainty
 btagSys = 0.0#5 #b-tagging uncertainty
 ttagSys = 0.05 #t-tagging uncertainty
@@ -156,6 +169,7 @@ def makeThetaCats(datahists,sighists,bkghists,discriminant):
 							if bkg!=bkgProcs[proc][0]: hists[proc+cat+syst+ud].Add(bkghists[histoPrefixOrg.replace(discriminant,discriminant+syst+ud)+'_'+bkg])
 					if syst=='toppt' or syst=='ht': continue
 					for signal in sigList: hists[signal+cat+syst+ud] = sighists[histoPrefixOrg.replace(discriminant,discriminant+syst+ud)+'_'+signal].Clone(histoPrefix+'__sig__'+syst+'__'+ud.replace('Up','plus').replace('Down','minus'))
+		if doPDFsys:
 			for pdfInd in range(100):
 				for proc in bkgProcList+bkgGrupList:
 					hists[proc+cat+'pdf'+str(pdfInd)] = bkghists[histoPrefixOrg.replace(discriminant,discriminant+'pdf'+str(pdfInd))+'_'+bkgProcs[proc][0]].Clone(histoPrefix+'__'+proc+'__pdf'+str(pdfInd))
@@ -187,6 +201,13 @@ def makeThetaCats(datahists,sighists,bkghists,discriminant):
 				yieldTable[histoPrefix+'q2Up'][proc] = hists[proc+cat+'q2Up'].Integral()
 				yieldTable[histoPrefix+'q2Down'][proc] = hists[proc+cat+'q2Down'].Integral()
 
+		#Scale statistical uncertainties
+		if scaleStatUnc:
+			for hist in hists.keys():
+				if cat not in hist: continue
+				for ibin in range(1,hists[hist].GetNbinsX()+1):
+					hists[hist].SetBinError(ibin,hists[hist].GetBinError(ibin)/math.sqrt(newTargetlumi/36000.))
+
 		#prepare yield table
 		for proc in bkgGrupList+bkgProcList+sigList+['data']: yieldTable[histoPrefix][proc] = hists[proc+cat].Integral()
 		yieldTable[histoPrefix]['totBkg'] = sum([hists[proc+cat].Integral() for proc in bkgGrupList])
@@ -216,6 +237,7 @@ def makeThetaCats(datahists,sighists,bkghists,discriminant):
 						if normalizeRENORM_PDF and (syst.startswith('mu') or syst=='pdf'):
 							hists[signal+cat+syst+'Up'].Scale(hists[signal+cat].Integral()/hists[signal+cat+syst+'Up'].Integral())
 							hists[signal+cat+syst+'Down'].Scale(hsihistsg[signal+cat].Integral()/hists[signal+cat+syst+'Down'].Integral())
+				if doPDFsys:
 					for pdfInd in range(100): 
 						hists[signal+cat+'pdf'+str(pdfInd)].Scale(1./xsec[signal])
 
@@ -236,6 +258,7 @@ def makeThetaCats(datahists,sighists,bkghists,discriminant):
 							if syst=='ht' and proc not in htProcs: continue
 							hists[proc+cat+syst+'Up'].Write()
 							hists[proc+cat+syst+'Down'].Write()
+					if doPDFsys:
 						for pdfInd in range(100): hists[proc+cat+'pdf'+str(pdfInd)].Write()
 					if doQ2sys:
 						if proc+'_q2up' not in bkgProcs.keys(): continue
@@ -252,7 +275,8 @@ def makeThetaCats(datahists,sighists,bkghists,discriminant):
 	for cat in catList:
 		print "              ... "+cat
 		for signal in sigList:
-			mass = [str(mass) for mass in massList if str(mass) in signal][0]
+			mass = signal[signal.find('M')+1:]
+			#mass = [str(mass) for mass in massList if str(mass) in signal][0]
 			hists[signal+cat].SetName(hists[signal+cat].GetName().replace('fbinv_','fbinv_'+postTag).replace('__sig','__'+signal.replace('M'+mass,'')+'M'+mass))
 			hists[signal+cat].Write()
 			if doAllSys:
@@ -262,6 +286,7 @@ def makeThetaCats(datahists,sighists,bkghists,discriminant):
 					hists[signal+cat+syst+'Down'].SetName(hists[signal+cat+syst+'Down'].GetName().replace('fbinv_','fbinv_'+postTag).replace('__sig','__'+signal.replace('M'+mass,'')+'M'+mass).replace('__minus','Down'))
 					hists[signal+cat+syst+'Up'].Write()
 					hists[signal+cat+syst+'Down'].Write()
+			if doPDFsys:
 				for pdfInd in range(100): 
 					hists[signal+cat+'pdf'+str(pdfInd)].SetName(hists[signal+cat+'pdf'+str(pdfInd)].GetName().replace('fbinv_','fbinv_'+postTag).replace('__sig','__'+signal.replace('M'+mass,'')+'M'+mass))
 					hists[signal+cat+'pdf'+str(pdfInd)].Write()
@@ -276,6 +301,7 @@ def makeThetaCats(datahists,sighists,bkghists,discriminant):
 					hists[proc+cat+syst+'Down'].SetName(hists[proc+cat+syst+'Down'].GetName().replace('fbinv_','fbinv_'+postTag).replace('__minus','Down'))
 					hists[proc+cat+syst+'Up'].Write()
 					hists[proc+cat+syst+'Down'].Write()
+			if doPDFsys:
 				for pdfInd in range(100): 
 					hists[proc+cat+'pdf'+str(pdfInd)].SetName(hists[proc+cat+'pdf'+str(pdfInd)].GetName().replace('fbinv_','fbinv_'+postTag))
 					hists[proc+cat+'pdf'+str(pdfInd)].Write()
@@ -543,7 +569,7 @@ for iPlot in iPlotList:
 	if scaleLumi:
 		for key in bkghists.keys(): 
 			bkghists[key].Scale(lumiScaleCoeff)
-			#if 'QCDPt170to300' in key: bkghists[key].Scale(1./10.)
+			if halveNTMJ and key.split('_')[-1] not in bkgProcs['ttbar']: bkghists[key].Scale(0.5)
 		for key in sighists.keys(): sighists[key].Scale(lumiScaleCoeff)
 	
 	#Rebin

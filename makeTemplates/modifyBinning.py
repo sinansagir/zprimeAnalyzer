@@ -29,10 +29,10 @@ start_time = time.time()
 #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 iPlot='zpMass'
-lumi='36p0fbinv'
+lumi='3000p0fbinv'
 if len(sys.argv)>1: iPlot=str(sys.argv[1])
 cutString = ''
-templateDir = os.getcwd()+'/templates_zpMass_mergeprocs_2018_8_29/'+cutString
+templateDir = os.getcwd()+'/templates_alljets_halveStatUnc_2018_10_31/'+cutString
 combinefile = 'templates_'+iPlot+'_'+lumi+'.root'
 
 quiet = True #if you don't want to see the warnings that are mostly from the stat. shape algorithm!
@@ -42,16 +42,16 @@ normalizeRENORM = True #only for signals
 normalizePDF    = True #only for signals
 #X53X53, TT, BB, HTB, etc --> this is used to identify signal histograms for combine templates when normalizing the pdf and muRF shapes to nominal!!!!
 sigName = 'Zp' #MAKE SURE THIS WORKS FOR YOUR ANALYSIS PROPERLY!!!!!!!!!!!
-massList = range(2000,6000+1,1000)
+massList = range(2000,6000+1,1000)+range(8000,12000+1,2000)
 if 'kinematics_PS' in templateDir: massList = [1000,1300]
 sigProcList = [sigName+'M'+str(mass) for mass in massList]
 #bkgProcList = ['ttbar','sitop','wjets','zjets','dibos','qcd'] #put the most dominant process first
 #bkgProcList = ['top','ewk','qcd'] #put the most dominant process first
-bkgProcList = ['ttbar','other']
+bkgProcList = ['ttbar','qcd']
 era = "13TeV"
 
-minNbins=2 #min number of bins to be merged
-stat = 1.1 #statistical uncertainty requirement (enter >1.0 for no rebinning; i.g., "1.1")
+minNbins=1 #min number of bins to be merged
+stat = 0.1 #statistical uncertainty requirement (enter >1.0 for no rebinning; i.g., "1.1")
 statThres = 0.05 #statistical uncertainty threshold on total background to assign BB nuisances -- enter 0.0 to assign BB for all bins
 #if len(sys.argv)>1: stat=float(sys.argv[1])
 singleBinCR = False
@@ -73,7 +73,7 @@ addShapes = False
 lumiSys = 0.01 #lumi uncertainty
 elIdIsoSys = 0.01 #electron id/iso uncertainty
 muIdIsoSys = 0.005 #muon id/iso uncertainty
-jesSys = 0.035 #JES uncertainty
+jesSys = 0.0#35 #JES uncertainty
 jerSys = 0.03 #JER uncertainty
 btagSys = 0.0#5 #b-tagging uncertainty
 ttagSys = 0.05 #t-tagging uncertainty
@@ -436,7 +436,7 @@ procNames={
 for sig in sigProcList: 
 	if 'left' in sig:  procNames[sig]='LH \\xft ('+str(float(sig[7:-4])/1000)+' \\TeV)'
 	if 'right' in sig: procNames[sig]='RH \\xft ('+str(float(sig[7:-5])/1000)+' \\TeV)'
-	procNames[sig]='RSG ('+str(float(sig[3:])/1000)+'\\TeV)'
+	procNames[sig]='RSG ('+str(float(sig[len(sigName)+1:])/1000)+'\\TeV)'
 
 print "List of systematics for "+bkgProcList[0]+" process and "+channels[0]+" channel:"
 print "        ",sorted([hist[hist.find(bkgProcList[0]+'__')+len(bkgProcList[0])+2:hist.find(upTag)] for hist in yieldsAll.keys() if channels[0] in hist and '__'+bkgProcList[0]+'__' in hist and upTag in hist])# and 'muRF' not in hist

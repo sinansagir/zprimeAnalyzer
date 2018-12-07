@@ -10,19 +10,20 @@ import CMS_lumi, tdrstyle
 rt.gROOT.SetBatch(1)
 
 blind=True
-saveKey=''
+saveKey='_v2'
 signal = 'Zp'
-lumiStrs = {'36p0':'36','300p0':'300','1000p0':'1000','3000p0':'3000'}
+lumiStrs = {'36p0':'36 fb^{-1}','300p0':'300 fb^{-1}','1000p0':'1 ab^{-1}','3000p0':'3 ab^{-1}'}
+lumiStrs = {'300p0':'300 fb^{-1}','3000p0':'3 ab^{-1}'}
 plotLimits = False
 
-mass_str = ['2000','3000','4000','5000','6000']
-theory_xsec = [1.3*1.153,1.3*1.556*0.1,1.3*3.585*0.01,1.3*1.174*0.01,1.3*4.939*0.001]
+mass_str = ['2000','3000','4000','5000','6000','8000','10000','12000']
+theory_xsec = [1.3*1.153,1.3*1.556*0.1,1.3*3.585*0.01,1.3*1.174*0.01,1.3*4.939*0.001,1.3*1.403*0.001,1.3*5.527*0.0001,1.3*2.622*0.0001]
 theory_xsec_13tev = [1.3*0.9528,1.3*0.1289,1.3*0.02807,1.3*0.009095]
 
-scale_up = [0,0,0,0,0][:len(mass_str)]#%
-scale_dn = [0,0,0,0,0][:len(mass_str)]#%
-pdf_up   = [0,0,0,0,0][:len(mass_str)]#%
-pdf_dn   = [0,0,0,0,0][:len(mass_str)]#%
+scale_up = [0,0,0,0,0,0,0,0,0,0,0][:len(mass_str)]#%
+scale_dn = [0,0,0,0,0,0,0,0,0,0,0][:len(mass_str)]#%
+pdf_up   = [0,0,0,0,0,0,0,0,0,0,0][:len(mass_str)]#%
+pdf_dn   = [0,0,0,0,0,0,0,0,0,0,0][:len(mass_str)]#%
 
 mass   =array('d', [float(item)/1e3 for item in mass_str])
 masserr=array('d',[0 for i in range(len(mass))])
@@ -73,7 +74,7 @@ CMS_lumi.lumi_7TeV = "4.8 fb^{-1}"
 CMS_lumi.lumi_8TeV = "18.3 fb^{-1}"
 CMS_lumi.lumi_13TeV= "35.9 fb^{-1}"
 CMS_lumi.writeExtraText = 1
-CMS_lumi.extraText = "Simulation"
+CMS_lumi.extraText = "Simulation Preliminary"
 
 iPos = 11
 if( iPos==0 ): CMS_lumi.relPosX = 0.12
@@ -86,10 +87,10 @@ H = H_ref
 iPeriod = 0 #see CMS_lumi.py module for usage!
 
 # references for T, B, L, R
-T = 0.08*H_ref
-B = 0.14*H_ref 
-L = 0.14*W_ref
-R = 0.04*W_ref
+T = 0.10*H_ref
+B = 0.125*H_ref
+L = 0.12*W_ref
+R = 0.05*W_ref
 
 def PlotLimits(limitDir,limitFile,lumiStr,tempKey):
     histPrefix=discriminant+'_'+lumiStr+'fbinv'
@@ -97,6 +98,7 @@ def PlotLimits(limitDir,limitFile,lumiStr,tempKey):
     ljust_i = 1
     print
     print 'mass'.ljust(ljust_i), 
+    print 'theory'.ljust(ljust_i), 
     if not blind: 'observed'.ljust(ljust_i), 
     print 'expected'.ljust(ljust_i), 
     print '[-1 Sigma'.ljust(ljust_i), ', +1 Sigma'.ljust(ljust_i), '] [-2 Sigma'.ljust(ljust_i), ', +2 Sigma'.ljust(ljust_i),']'.ljust(ljust_i),
@@ -104,6 +106,8 @@ def PlotLimits(limitDir,limitFile,lumiStr,tempKey):
     
     limExpected = 2
     limObserved = 2
+    limSigma3 = 2
+    limSigma5 = 2
     for i in range(len(mass)):        
         try:
         	if blind: fobs = open(limitDir.replace('_disc','_lim')+cutString+limitFile.replace(signal+'M2000',signal+'M'+mass_str[i]), 'rU')
@@ -116,11 +120,11 @@ def PlotLimits(limitDir,limitFile,lumiStr,tempKey):
         	fexp.close()
         	
         	#print limitDir+cutString+limitFile.replace(signal+'M2000',signal+'M'+mass_str[i]).replace('expected','3sigmaSignif').replace('limits_','')
-        	f3sigma = open(limitDir+cutString+limitFile.replace(signal+'M2000',signal+'M'+mass_str[i]).replace('expected','3sigmaSignif').replace('limits_',''), 'rU')
+        	f3sigma = open(limitDir+cutString+limitFile.replace(signal+'M2000',signal+'M'+mass_str[i]).replace('expected','3sigmaSignif').replace('limits_','').replace(doCLS,''), 'rU')
         	lines3sigma = f3sigma.readlines()
         	f3sigma.close()
         	
-        	f5sigma = open(limitDir+cutString+limitFile.replace(signal+'M2000',signal+'M'+mass_str[i]).replace('expected','5sigmaSignif').replace('limits_',''), 'rU')
+        	f5sigma = open(limitDir+cutString+limitFile.replace(signal+'M2000',signal+'M'+mass_str[i]).replace('expected','5sigmaSignif').replace('limits_','').replace(doCLS,''), 'rU')
         	lines5sigma = f5sigma.readlines()
         	f5sigma.close()
         	
@@ -148,6 +152,10 @@ def PlotLimits(limitDir,limitFile,lumiStr,tempKey):
         		limExpected,ycross = getSensitivity(i,exp)
         	if(obs[i]>theory_xsec[i] and obs[i-1]<theory_xsec[i-1]) or (obs[i]<theory_xsec[i] and obs[i-1]>theory_xsec[i-1]):
         		limObserved,ycross = getSensitivity(i,obs)
+        	if(sigma3[i]>theory_xsec[i] and sigma3[i-1]<theory_xsec[i-1]) or (sigma3[i]<theory_xsec[i] and sigma3[i-1]>theory_xsec[i-1]):
+        		limSigma3,ycross = getSensitivity(i,sigma3)
+        	if(sigma5[i]>theory_xsec[i] and sigma5[i-1]<theory_xsec[i-1]) or (sigma5[i]<theory_xsec[i] and sigma5[i-1]>theory_xsec[i-1]):
+        		limSigma5,ycross = getSensitivity(i,sigma5)
         		
         exp95L[i]=(exp[i]-exp95L[i])
         exp95H[i]=abs(exp[i]-exp95H[i])
@@ -155,7 +163,8 @@ def PlotLimits(limitDir,limitFile,lumiStr,tempKey):
         exp68H[i]=abs(exp[i]-exp68H[i])
 
         round_i = 3
-        print str(int(mass[i])).ljust(ljust_i), 
+        print str(int(mass[i])).ljust(ljust_i),
+        print '& '+str(round(theory_xsec[i],round_i+1)).ljust(ljust_i), 
         if not blind: print '& '+str(round(obs[i],round_i)).ljust(ljust_i), 
         print '& '+str(round(exp[i],round_i)).ljust(ljust_i), 
         print '& ['+str(round(exp[i]-exp68L[i],round_i)).ljust(ljust_i)+', '+str(round(exp[i]+exp68H[i],round_i)).ljust(ljust_i)+'] & ['+str(round(exp[i]-exp95L[i],round_i)).ljust(ljust_i)+', '+str(round(exp[i]+exp95H[i],round_i)).ljust(ljust_i)+'] & ',
@@ -163,10 +172,16 @@ def PlotLimits(limitDir,limitFile,lumiStr,tempKey):
     print
     signExp = "="
     signObs = "="
+    sign3sig = "="
+    sign5sig = "="
     if limExpected==2: signExp = "<"
     if limObserved==2: signObs = "<"
+    if limSigma3==2: sign3sig = "<"
+    if limSigma5==2: sign5sig = "<"
     print "Expected lower limit "+signExp,round(limExpected,2),"TeV"
     print "Observed lower limit "+signObs,round(limObserved,2),"TeV"
+    print "3 sigma reach "+sign3sig,round(limSigma3,2),"TeV"
+    print "5 sigma reach "+sign5sig,round(limSigma5,2),"TeV"
     print
 
     massv = rt.TVectorD(len(mass),mass)
@@ -223,6 +238,9 @@ def PlotLimits(limitDir,limitFile,lumiStr,tempKey):
 
     XaxisTitle = "RSG mass [TeV]"
     YaxisTitle = "#sigma(RSG #rightarrow t#bar{t}) [pb]"
+    if 'W' in signal: 
+		XaxisTitle = "Z' 30% width mass [TeV]"
+		YaxisTitle = "#sigma(Z' #rightarrow t#bar{t}) [pb]"
 
     if plotLimits:
 		expected95.Draw("a3")
@@ -250,19 +268,20 @@ def PlotLimits(limitDir,limitFile,lumiStr,tempKey):
     theory_xsec_gr.SetLineColor(2)
     theory_xsec_gr.SetLineStyle(1)
     theory_xsec_gr.SetLineWidth(2)
-    theory_xsec_gr.Draw("3same") 
+    if 'W' not in signal: theory_xsec_gr.Draw("3same") 
     theory.SetLineColor(2)
     theory.SetLineStyle(1)
     theory.SetLineWidth(2)
-    theory.Draw("same")                                                             
+    if 'W' not in signal: theory.Draw("same")                                                             
         
     #draw the lumi text on the canvas
-    CMS_lumi.lumi_sqrtS = lumiPlot+" fb^{-1} (14 TeV)" # used with iPeriod = 0, e.g. for simulation-only plots (default is an empty string)
+    CMS_lumi.lumi_sqrtS = lumiPlot+" (14 TeV)" # used with iPeriod = 0, e.g. for simulation-only plots (default is an empty string)
     CMS_lumi.CMS_lumi(canvas, iPeriod, iPos)
 
-    legend = rt.TLegend(.37,.69,.94,.89) # top right
+    #legend = rt.TLegend(.50,.64,.94,.89) # top right
+    legend = rt.TLegend(.53,.64,.96,.89) # top right
     if not blind: legend.AddEntry(observed, "95% CL observed", "lp")
-    legend.AddEntry(theory_xsec_gr, "Signal cross section", "l")
+    if 'W' not in signal: legend.AddEntry(theory_xsec_gr, "Signal cross section", "l")
     legend.AddEntry(sigma3gr , '3#sigma', "l")
     legend.AddEntry(sigma5gr , '5#sigma', "l")
     if plotLimits:
@@ -287,35 +306,32 @@ def PlotLimits(limitDir,limitFile,lumiStr,tempKey):
     folder = '.'
     outDir=folder+'/'+limitDir.split('/')[-3][:-5]+'plots'
     if not os.path.exists(outDir): os.system('mkdir '+outDir)
-    plotName = 'SignificancePlot_'+histPrefix+binning+saveKey+'_'+tempKey
-    if blind: plotName+='_blind'
+    plotName = 'SignificancePlot_'+histPrefix+binning.replace('_rebinned_stat1p1','')+saveKey+'_'+tempKey
+    if '000p0fbinv' in plotName: plotName=plotName.replace('000p0fbinv','abinv')
+    #if blind: plotName+='_blind'
     canvas.SaveAs(outDir+'/'+plotName+'.eps')
     canvas.SaveAs(outDir+'/'+plotName+'.pdf')
     canvas.SaveAs(outDir+'/'+plotName+'.png')
     return round(limExpected,2), round(limObserved,2)
 
-doCLS='_cls'
+doCLS='_acls' #leave empty for Bayesian and '_acls' for asymptotic CLs limits
 iPlotList=['zpMass']
-binnings = ['1p1']
-tempKeys = ['btagcats','nobtagcats']
-#tempKeys = ['all']
+binnings = ['0p1']
+tempKeys = ['nobtagcats']#,'btagcats']
+tempKeys = ['all']
 cutString=''
 dirs = {
-		'Zp20180823':'templates_zpMass_2018_8_23_disc',
-		'Zp20180823combo':'templates_zpMass_2018_8_23_combination_disc',
-		'Zp20180824alljets':'templates_alljets_2018_8_24_disc',
-		'Zp20180829':'templates_zpMass_2018_8_29_disc',
-		'Zp20180829combo':'templates_zpMass_2018_8_29_combination_disc',
-		'Zp201808292':'templates_zpMass_2018_8_29_2_disc',
-		'Zp201808292alljets':'templates_alljets_2018_9_11_2_disc',
-		'Zp20180829combo2':'templates_zpMass_2018_8_29_combination2_disc',
-		'Zp20180829Sept15':'templates_zpMass_2018_8_29_15Sept_disc',
-		'Zp20180829Sept15alljets':'templates_alljets_2018_9_11_15Sept_disc',
-		'Zp20180829comboSept15':'templates_zpMass_2018_8_29_comb_15Sept_disc',
-		'Zp20180829mergeprocs':'templates_zpMass_mergeprocs_2018_8_29_disc',
-		'Zp20180829mergeprocscomb':'templates_zpMass_mergeprocs_2018_8_29_comb_disc',
+		'20180829preARCajet':'templates_alljets_2018_9_20_preARC_disc',
+		'20180829preARCljet':'templates_zpMass_mergeprocs_2018_8_29_preARC_disc',
+		'20180829preARCcomb':'templates_zpMass_mergeprocs_2018_8_29_comb_preARC_disc',
+		'20181014ajet':'templates_alljets_2018_10_14_disc',
+		'20181014ljet':'templates_zpMass_2018_10_19_disc',
+		'20181014comb':'templates_zpMass_2018_10_19_comb_disc',		
+		'20181031halveStatUncajet':'templates_alljets_halveStatUnc_2018_10_31_disc',
+		'20181031halveStatUncljet':'templates_halveStatUnc_2018_10_31_disc',
+		'20181031halveStatUnccomb':'templates_halveStatUnc_2018_10_31_comb_disc',
 		}
-dirKeyList = ['Zp20180829mergeprocs']
+dirKeyList = ['20181031halveStatUncajet','20181031halveStatUncljet','20181031halveStatUnccomb']
 
 expLims = {}
 obsLims = {}

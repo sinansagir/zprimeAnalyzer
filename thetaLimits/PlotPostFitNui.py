@@ -25,6 +25,7 @@ nuisNamPlot = {
 'muRF_ttbar':'muRF_ttbar',
 'muRF_wjets':'muRF_wjets',
 'btag':'b tagging',
+'mistag':'udsg mistagging',
 'ttag':'t tagging',
 'toppt':'top p_{T}',
 'xsec_ttbar':'xsec_ttbar',
@@ -68,12 +69,11 @@ iPlotList=['zpMass']
 tempKeys = ['btagcats','nobtagcats']
 cutString=''
 dirs = {
-		'Zp20180823':'templates_zpMass_2018_8_23_lim',
-		'Zp20180824alljets':'templates_alljets_2018_8_24_lim',
 		'Zp20180829':'templates_zpMass_2018_8_29_lim',
 		'Zp20180829mergeprocscomb':'templates_zpMass_mergeprocs_2018_8_29_comb_lim',
+		'wMCstat':'templates_zpMass_mergeprocs_2018_8_29_comb_preARCwMCstat_lim',
 		}
-dirKeyList = ['Zp20180829mergeprocscomb']
+dirKeyList = ['wMCstat']
 binnings = ['1p1']
 theMass = mass_str[2]
 

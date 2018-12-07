@@ -7,11 +7,18 @@ import ROOT as rt
 #
 
 cmsText     = "CMS";
-cmsTextFont   = 61  
+cmsTextFont   = 61 
+
+phaseText     = "Phase-2";
+phaseTextFont   = 52  
 
 writeExtraText = True
 extraText   = "Preliminary"
 extraTextFont = 52 
+
+writeExtra2Text = False
+extra2Text   = "Preliminary"
+extra2TextFont = 52 
 
 lumiTextSize     = 0.6
 lumiTextOffset   = 0.2
@@ -21,7 +28,8 @@ cmsTextOffset    = 0.1
 
 relPosX    = 0.045
 relPosY    = 0.035
-relExtraDY = 1.2
+relExtraDY = 1.#2
+relExtraDX = 1.6
 
 extraOverCmsTextSize  = 0.76
 
@@ -145,15 +153,21 @@ def CMS_lumi(pad,  iPeriod,  iPosX ):
                 latex.SetTextFont(extraTextFont)
                 latex.SetTextAlign(align_)
                 latex.SetTextSize(extraTextSize*t)
+                latex.DrawLatex(posX_+relExtraDX*cmsTextSize*t, posY_- 0.15*cmsTextSize*t, phaseText)
                 latex.DrawLatex(posX_, posY_- relExtraDY*cmsTextSize*t, extraText)
+            if( writeExtra2Text ) :
+                latex.SetTextFont(extra2TextFont)
+                latex.SetTextAlign(align_)
+                latex.SetTextSize(extraTextSize*t)
+                latex.DrawLatex(posX_, posY_- 1.8*relExtraDY*cmsTextSize*t, extra2Text)
     elif( writeExtraText ):
-        if( iPosX==0):
-            posX_ =   l +  relPosX*(1-l-r)
-            posY_ =   1-t+lumiTextOffset*t
-
         latex.SetTextFont(extraTextFont)
         latex.SetTextSize(extraTextSize*t)
         latex.SetTextAlign(align_)
+        latex.DrawLatex(posX_, posY_, phaseText)      
+        if( iPosX==0):
+            posX_ =   l +  relPosX*(1-l-r)
+            posY_ =   1-t+lumiTextOffset*t
         latex.DrawLatex(posX_, posY_, extraText)      
 
     pad.Update()

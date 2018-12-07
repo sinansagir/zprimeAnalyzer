@@ -9,6 +9,27 @@ nRun['ZpM3000'] = 399992. #N_gen=400k
 nRun['ZpM4000'] = 399990. #N_gen=400k
 nRun['ZpM5000'] = 399989. #N_gen=400k
 nRun['ZpM6000'] = 399987. #N_gen=400k
+nRun['ZpM8000'] = 445401. #N_gen=400k
+nRun['ZpM10000'] = 445401. #N_gen=400k
+nRun['ZpM12000'] = 445500. #N_gen=400k
+
+nRun['ZpW1M2000'] = 399986. #N_gen=400k
+nRun['ZpW1M4000'] = 399982. #N_gen=400k
+
+nRun['ZpW3M2000'] = 399986. #N_gen=400k
+nRun['ZpW3M3000'] = 399979. #N_gen=400k
+nRun['ZpW3M4000'] = 398760. #N_gen=400k
+nRun['ZpW3M5000'] = 399983. #N_gen=400k
+nRun['ZpW3M6000'] = 399982. #N_gen=400k
+
+nRun['ZpW30M2000'] = 399987. #N_gen=400k
+nRun['ZpW30M3000'] = 399982. #N_gen=400k
+nRun['ZpW30M4000'] = 399980. #N_gen=400k
+nRun['ZpW30M5000'] = 399980. #N_gen=400k
+nRun['ZpW30M6000'] = 399979. #N_gen=400k
+nRun['ZpW30M8000'] = 399980. #N_gen=400k
+nRun['ZpW30M10000'] = 399959. #N_gen=400k
+nRun['ZpW30M12000'] = 400000. #N_gen=400k
 
 filterEffTTbar = 0.0246 #21.27/864.4
 #nRun['TTinc'] = 269205951 #N_gen=270M (original~50M+ext1~220M) # there seems to be some repeated events that are being checked!!!
@@ -18,12 +39,16 @@ nRun['TTmtt1000toInfinc'] = nRun['TTinc']*filterEffTTbar+12769661. #N_gen=12,770
 nRun['TTmtt1000toInf'] = nRun['TTmtt1000toInfinc']#12769661.
 
 nRun['STs'] = 7376778. #N_gen=5,877,000(v1)+1,500,000(v2)
-nRun['STt'] = 66141783. #N_gen=59,759,100 #missing 5/2182 files
-nRun['STbt']= 5253355. #N_gen=39,792,299 #missing 2/177 files
+nRun['STt'] = 64052952. #N_gen=59,759,100 #missing 5/2182 files
+nRun['STtJECup'] = 66303478. #N_gen=59,759,100 #missing 5/2182 files
+nRun['STtJECdn'] = 66303478. #N_gen=59,759,100 #missing 5/2182 files
+nRun['STbt']= 5277619. #N_gen=39,792,299 #missing 2/177 files
 nRun['STtW'] = 14540191. #N_gen=11,839,000
 nRun['STbtW'] = 14955459. #N_gen=12,000,000
 
-nRun['WJetsInc'] = 149042577. #N_gen=151,958,925 #missing 35/3566 files
+nRun['WJetsInc'] = 131462634. #N_gen=151,958,925 #missing 35/3566 files
+nRun['WJetsIncJECup'] = 148437665. #N_gen=151,958,925 #missing 35/3566 files
+nRun['WJetsIncJECdn'] = 146991322. #N_gen=151,958,925 #missing 35/3566 files
 
 nRun['DyHT70to100'] = 19096772. #N_gen=19,098,098
 nRun['DyHT100to200'] = 19311172. #N_gen=19,312,573
@@ -31,10 +56,12 @@ nRun['DyHT200to400'] = 10625680. #N_gen=10,653,173
 nRun['DyHT400to600'] = 10161396. #N_gen=10,174,397
 nRun['DyHT600to800'] = 9966447. #N_gen=9,967,183
 nRun['DyHT800to1200'] = 9411932. #N_gen=9,412,655
-nRun['DyHT1200to2500'] = 4588584. #N_gen=4,653,394 #missing 1/82 files
+nRun['DyHT1200to2500'] = 4652988. #N_gen=4,653,394 #missing 1/82 files
 nRun['DyHT2500toInf'] = 3091458. #N_gen=3,091,754
 
-nRun['WW'] = 99127796. #N_gen=100,000,000 #missin 15/2219 files
+nRun['WW'] = 99717783. #N_gen=100,000,000 #missin 15/2219 files
+nRun['WWJECup'] = 99577786. #N_gen=100,000,000 #missin 15/2219 files
+nRun['WWJECdn'] = 99767782. #N_gen=100,000,000 #missin 15/2219 files
 
 nRun['QCDPt50to80'] = 1999953. #N_gen=2,000,000
 nRun['QCDPt80to120'] = 2999927. #N_gen=3,000,000
@@ -60,6 +87,27 @@ xsec['ZpM3000'] = 1.#1.556e-01
 xsec['ZpM4000'] = 1.#3.585e-02
 xsec['ZpM5000'] = 1.#1.174e-02
 xsec['ZpM6000'] = 1.#4.939e-03
+xsec['ZpM8000'] = 1.#
+xsec['ZpM10000'] = 1.#
+xsec['ZpM12000'] = 1.#
+
+xsec['ZpW1M2000'] = 1.#
+xsec['ZpW1M4000'] = 1.#
+
+xsec['ZpW3M2000'] = 1.#
+xsec['ZpW3M3000'] = 1.#
+xsec['ZpW3M4000'] = 1.#
+xsec['ZpW3M5000'] = 1.#
+xsec['ZpW3M6000'] = 1.#
+
+xsec['ZpW30M2000'] = 1.#
+xsec['ZpW30M3000'] = 1.#
+xsec['ZpW30M4000'] = 1.#
+xsec['ZpW30M5000'] = 1.#
+xsec['ZpW30M6000'] = 1.#
+xsec['ZpW30M8000'] = 1.#
+xsec['ZpW30M10000'] = 1.#
+xsec['ZpW30M12000'] = 1.#
 
 xsec['TTinc'] = 864.6 #from https://docs.google.com/spreadsheets/d/1Oz8rWBoPJInKoy4_QyT0BArO9VnMe7AeyikUE09h2O0/edit#gid=0
 xsec['TTmtt0to1000inc'] = xsec['TTinc']
@@ -68,11 +116,15 @@ xsec['TTmtt1000toInf'] = xsec['TTinc']*filterEffTTbar#21.27 #(xsec*filtering coe
 
 xsec['STs'] = 11.14
 xsec['STt'] = 48.03
+xsec['STtJECup'] = 48.03
+xsec['STtJECdn'] = 48.03
 xsec['STbt']= 29.2
 xsec['STtW'] = 45.06
 xsec['STbtW'] = 45.02
 
 xsec['WJetsInc'] = 60520. #from https://docs.google.com/spreadsheets/d/1Oz8rWBoPJInKoy4_QyT0BArO9VnMe7AeyikUE09h2O0/edit#gid=0
+xsec['WJetsIncJECup'] = 60520. #from https://docs.google.com/spreadsheets/d/1Oz8rWBoPJInKoy4_QyT0BArO9VnMe7AeyikUE09h2O0/edit#gid=0
+xsec['WJetsIncJECdn'] = 60520. #from https://docs.google.com/spreadsheets/d/1Oz8rWBoPJInKoy4_QyT0BArO9VnMe7AeyikUE09h2O0/edit#gid=0
 
 xsec['DyHT70to100'] = 161.6*1.23
 xsec['DyHT100to200'] = 150*1.23
@@ -84,6 +136,8 @@ xsec['DyHT1200to2500'] = 0.08874*1.23
 xsec['DyHT2500toInf'] = 0.001755*1.23
 
 xsec['WW'] = 131. #NNLO (arXiv:1408.5243) from https://docs.google.com/spreadsheets/d/1Oz8rWBoPJInKoy4_QyT0BArO9VnMe7AeyikUE09h2O0/edit#gid=0
+xsec['WWJECup'] = 131. #NNLO (arXiv:1408.5243) from https://docs.google.com/spreadsheets/d/1Oz8rWBoPJInKoy4_QyT0BArO9VnMe7AeyikUE09h2O0/edit#gid=0
+xsec['WWJECdn'] = 131. #NNLO (arXiv:1408.5243) from https://docs.google.com/spreadsheets/d/1Oz8rWBoPJInKoy4_QyT0BArO9VnMe7AeyikUE09h2O0/edit#gid=0
 
 # 14TeV x-secs are scaled by an efficiency factor calculated from the comparison of filtering efficiencies between 13TeV and 14TeV samples -- form Christoph Schuler
 # These are taken from https://twiki.cern.ch/twiki/bin/viewauth/CMS/SummaryTable1G25ns#QCD    

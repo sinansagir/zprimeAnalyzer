@@ -37,7 +37,6 @@ def analyze(tTree,process,cutList,doAllSys,iPlot,plotDetails,category):
 	cut += ' && ((isSingEl && leadJetPt>185) || (isSingMu && leadJetPt>150))'
 	cut += ' && ((isSingEl && subLeadJetPt>50) || (isSingMu && subLeadJetPt>50))'
 	cut += ' && (minDR_lepJet>0.4 || ptRel_lepJet>25)'
-	#cut += ' && (lepRelIso<0.4 && lepAbsIso<50)'
 	if 'Chi2' not in iPlot: cut += ' && ((thadChi2+tlepChi2)<30)'
 	if iPlot!='zpDeltaR': cut += ' && (zpDeltaR > 1)'
 	if 'topAK8' in iPlot: cut += ' && (Ntoptagged == 1)'
@@ -94,10 +93,28 @@ def analyze(tTree,process,cutList,doAllSys,iPlot,plotDetails,category):
 	hists = {}
 	if isPlot2D: hists[iPlot+'_'+lumiStr+'fbinv_'+catStr+'_'+process]  = TH2D(iPlot+'_'+lumiStr+'fbinv_'+catStr+'_'+process,yAxisLabel+xAxisLabel,len(ybins)-1,ybins,len(xbins)-1,xbins)
 	else: hists[iPlot+'_'+lumiStr+'fbinv_'+catStr+'_'+process]  = TH1D(iPlot+'_'+lumiStr+'fbinv_'+catStr+'_'+process,xAxisLabel,len(xbins)-1,xbins)
+	if doAllSys:
+		systList = ['jec']#,'jer']
+		for syst in systList:
+			for ud in ['Up','Down']:
+				if isPlot2D: hists[iPlot+syst+ud+'_'+lumiStr+'fbinv_'+catStr+'_'+process] = TH2D(iPlot+syst+ud+'_'+lumiStr+'fbinv_'+catStr+'_'+process,yAxisLabel+xAxisLabel,len(ybins)-1,ybins,len(xbins)-1,xbins)
+				else: hists[iPlot+syst+ud+'_'+lumiStr+'fbinv_'+catStr+'_'+process] = TH1D(iPlot+syst+ud+'_'+lumiStr+'fbinv_'+catStr+'_'+process,xAxisLabel,len(xbins)-1,xbins)
 	for key in hists.keys(): hists[key].Sumw2()
 
 	# DRAW histograms
 	tTree[process].Draw(plotTreeName+' >> '+iPlot+'_'+lumiStr+'fbinv_'+catStr+'_' +process, weightStr+'*('+fullcut+')', 'GOFF')
+	if doAllSys:
+		weightStrUp = '1'
+		weightStrDn = '1'
+		if tTree[process+'jecUp']:
+			if process=='WJetsInc' or process=='STt' or process=='WW':
+				weightStrUp = str(nRun[process]/nRun[process+'JECup'])
+				weightStrDn = str(nRun[process]/nRun[process+'JECdn'])				
+			tTree[process+'jecUp'].Draw(plotTreeName   +' >> '+iPlot+'jecUp_'  +lumiStr+'fbinv_'+catStr+'_' +process, weightStr+' * '+weightStrUp+'*('+fullcut+')', 'GOFF')
+			tTree[process+'jecDown'].Draw(plotTreeName +' >> '+iPlot+'jecDown_'+lumiStr+'fbinv_'+catStr+'_' +process, weightStr+' * '+weightStrDn+'*('+fullcut+')', 'GOFF')
+# 		if tTree[process+'jerUp']:
+# 			tTree[process+'jerUp'].Draw(plotTreeName   +' >> '+iPlot+'jerUp_'  +lumiStr+'fb_'+catStr+'_' +process, weightStr+'*('+fullcut+')', 'GOFF')
+# 			tTree[process+'jerDown'].Draw(plotTreeName +' >> '+iPlot+'jerDown_'+lumiStr+'fb_'+catStr+'_' +process, weightStr+'*('+fullcut+')', 'GOFF')
 	
 	for key in hists.keys(): hists[key].SetDirectory(0)	
 	return hists
